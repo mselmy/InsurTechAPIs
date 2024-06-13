@@ -4,6 +4,9 @@ using InsurTech.Core;
 using InsurTech.Repository.Data;
 using InsurTech.Repository;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+using InsurTech.APIs.Errors;
+using InsurTech.APIs.Middlewares;
 
 namespace InsurTech.APIs
 {
@@ -29,17 +32,41 @@ namespace InsurTech.APIs
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+
+            #region Validation Error Handling
+            builder.Services.Configure<ApiBehaviorOptions>(option =>
+            {
+                option.InvalidModelStateResponseFactory = (actionContext) =>
+                {
+                    var errors = actionContext.ModelState.Where(p => p.Value.Errors.Count() > 0)
+                                            .SelectMany(p => p.Value.Errors)
+                                            .Select(e => e.ErrorMessage)
+                                            .ToArray();
+                    var validationErrorResponse = new ApiValidationErrorResponse()
+                    {
+                        Errors = errors
+                    };
+                    return new BadRequestObjectResult(validationErrorResponse);
+                };
+            });
+
+            #endregion
             //======================================================
             //======================================================
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+            app.UseMiddleware<ExceptionMiddleWare>();
             if (app.Environment.IsDevelopment())
             {
+                
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseStaticFiles();
+            app.UseStatusCodePagesWithRedirects("/error/{0}");
 
             app.UseHttpsRedirection();
 
