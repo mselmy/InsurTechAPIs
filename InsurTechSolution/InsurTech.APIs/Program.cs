@@ -7,6 +7,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using InsurTech.APIs.Errors;
 using InsurTech.APIs.Middlewares;
+using InsurTech.Core.Entities.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using InsurTech.Core.Service;
+using InsurTech.Service;
 
 namespace InsurTech.APIs
 {
@@ -29,9 +35,17 @@ namespace InsurTech.APIs
 
             });
 
+            builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+            {
+                // Identity options configuration (if needed)
+            })
+            .AddEntityFrameworkStores<InsurtechContext>(); // Ensure this line is present
+            
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
+            builder.Services.AddScoped<ITokenService, TokenService>();
 
             #region Validation Error Handling
             builder.Services.Configure<ApiBehaviorOptions>(option =>
@@ -69,7 +83,7 @@ namespace InsurTech.APIs
             app.UseStatusCodePagesWithRedirects("/error/{0}");
 
             app.UseHttpsRedirection();
-
+            
             app.UseAuthorization();
 
 

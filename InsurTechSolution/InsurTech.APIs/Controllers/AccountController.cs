@@ -1,6 +1,7 @@
 ﻿using InsurTech.APIs.DTOs;
 using InsurTech.APIs.Errors;
 using InsurTech.Core.Entities.Identity;
+using InsurTech.Core.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +14,15 @@ namespace InsurTech.APIs.Controllers
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager)
+        private readonly ITokenService _tokenService;
+
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,ITokenService tokenService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _tokenService = tokenService;
         }
+        
         #region Login
 
         [HttpPost("Login")]
@@ -29,14 +34,15 @@ namespace InsurTech.APIs.Controllers
             var Result = await _signInManager.CheckPasswordSignInAsync(User, model.Password, false);
 
             if (!Result.Succeeded) return Unauthorized(new ApiResponse(401));
+            if (!(User.IsApprove==IsApprove.approved)) return Unauthorized(new ApiResponse(401));
+
 
             return Ok(new UserDTO()
             {
-                Id = User.Id,
                 Email = User.Email,
                 Name = User.UserName,
-                Token = "hi"
-            });
+                Token = await _tokenService.CreateTokenAsync(User, _userManager)
+            }); ;
 
         }
 
