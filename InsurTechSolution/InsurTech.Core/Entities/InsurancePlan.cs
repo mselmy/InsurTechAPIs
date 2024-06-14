@@ -19,7 +19,8 @@ namespace InsurTech.Core.Entities
         public virtual Category Category { get; set; }
         public decimal Quotation { get; set; }
         public string CompanyId { get; set; }
-        public Company Company { get; set; } 
-        public ICollection<UserRequest> Requests { get; set; }
+        public virtual Company Company { get; set; } 
+        public virtual ICollection<UserRequest> Requests { get; set; }
+
     }
 }

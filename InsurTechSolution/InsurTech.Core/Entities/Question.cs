@@ -11,6 +11,6 @@ namespace InsurTech.Core.Entities
         public string Body { get; set; }
         public int CategoryId { get; set; }
         public virtual Category Category { get; set; }
-        public ICollection<RequestQuestion> RequestQuestions { get; set; } = new List<RequestQuestion>();
+        public virtual ICollection<RequestQuestion> RequestQuestions { get; set; } = new List<RequestQuestion>();
     }
 }

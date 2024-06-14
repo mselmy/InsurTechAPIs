@@ -13,6 +13,6 @@ namespace InsurTech.Core.Entities
         public virtual AppUser Customer { get; set; }
         public int InsurancePlanId { get; set; }
         public virtual InsurancePlan InsurancePlan { get; set; }
-        public ICollection<RequestQuestion> RequestQuestions { get; set; } = new List<RequestQuestion>();
+        public virtual ICollection<RequestQuestion> RequestQuestions { get; set; } = new List<RequestQuestion>();
     }
 }
