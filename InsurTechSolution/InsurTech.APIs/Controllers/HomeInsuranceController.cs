@@ -94,7 +94,7 @@ namespace InsurTech.APIs.Controllers
         {
 
             var HomeInsurance = await unitOfWork.Repository<HomeInsurancePlan>().GetByIdAsync(id);
-            if (HomeInsurance != null)
+            if (HomeInsurance != null || HomeInsurance?.AvailableInsurance != false)
             {
                 var NumberOfRequests = HomeInsurance.Requests.Count();
                 HomeInsuranceDTO HomeInsuranceDto = new HomeInsuranceDTO()
@@ -126,6 +126,8 @@ namespace InsurTech.APIs.Controllers
         public async Task<IActionResult> GetHomeInsurance()
         {
             var HomeInsurance = await unitOfWork.Repository<HomeInsurancePlan>().GetAllAsync();
+            HomeInsurance = HomeInsurance.Where(a => a.AvailableInsurance = true).ToList();
+
             if (HomeInsurance.Count() != 0)
             {
                 List<HomeInsuranceDTO> HomeinsuranceDto = new List<HomeInsuranceDTO>();

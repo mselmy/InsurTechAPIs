@@ -52,8 +52,10 @@ namespace InsurTech.APIs.Controllers
             {
                 Email = User.Email,
                 Name = User.UserName,
-                Token = await _tokenService.CreateTokenAsync(User, _userManager)
-            }); ;
+                Token = await _tokenService.CreateTokenAsync(User, _userManager),
+                Id=User.Id,
+                UserType=User.UserType
+            }); 
 
         }
 
@@ -83,13 +85,15 @@ namespace InsurTech.APIs.Controllers
 
 			if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
 
-			return Ok(new UserDTO()
+            return Ok(new UserDTO()
             {
-				Email = User.Email,
-				Name = User.UserName,
-				Token = await _tokenService.CreateTokenAsync(User, _userManager)
-			});
-		}
+                Email = User.Email,
+                Name = User.UserName,
+                Token = await _tokenService.CreateTokenAsync(User, _userManager),
+                Id = User.Id,
+                UserType = User.UserType
+            }); 
+        }
 
         #endregion
 
@@ -147,13 +151,15 @@ namespace InsurTech.APIs.Controllers
 
 			if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
 
-			return Ok(new UserDTO()
+            return Ok(new UserDTO()
             {
-				Email = User.Email,
-				Name = User.UserName,
-				Token = await _tokenService.CreateTokenAsync(User, _userManager)
-			});
-		}
+                Email = User.Email,
+                Name = User.UserName,
+                Token = await _tokenService.CreateTokenAsync(User, _userManager),
+                Id = User.Id,
+                UserType = User.UserType
+            });
+        }
 
 		#endregion
 
@@ -303,7 +309,9 @@ namespace InsurTech.APIs.Controllers
             {
                 Email = user.Email,
                 Name = user.UserName,
-                Token = await _tokenService.CreateTokenAsync(user, _userManager)
+                Token = await _tokenService.CreateTokenAsync(user, _userManager),
+                Id=user.Id,
+                UserType=user.UserType
             };
 
             return Ok(userDto);
@@ -336,8 +344,16 @@ namespace InsurTech.APIs.Controllers
                 await _userManager.AddLoginAsync(user, info);
             }
 
-            var jwtToken = await _tokenService.CreateTokenAsync(user, _userManager);
-            return Ok(new { Token = jwtToken });
+            var userDto = new UserDTO
+            {
+                Email = user.Email,
+                Name = user.UserName,
+                Token = await _tokenService.CreateTokenAsync(user, _userManager),
+                Id = user.Id,
+                UserType = user.UserType
+            };
+
+            return Ok(userDto);
         }
 
         #endregion
