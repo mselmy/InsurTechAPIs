@@ -37,15 +37,20 @@ namespace InsurTech.APIs
 
             builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
             {
-                // Identity options configuration (if needed)
+                
             })
-            .AddEntityFrameworkStores<InsurtechContext>(); // Ensure this line is present
-            
+            .AddEntityFrameworkStores<InsurtechContext>()
+            .AddDefaultTokenProviders();
+
+            //Reset Password
+            builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(10));
+
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
             #region Validation Error Handling
             builder.Services.Configure<ApiBehaviorOptions>(option =>
