@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Google.Apis.Auth;
+using Microsoft.Identity.Client.AppConfig;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -350,13 +351,17 @@ namespace InsurTech.APIs.Controllers
             if (user == null)
             {
                 var userNameNew = email.Split('@')[0];
-                user = new AppUser()
+                
+
+                 user = new Customer
                 {
-                    UserType = UserType.Admin,
-                    UserName = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
-                    Email = email,
-                    PhoneNumber = "01556675022",
-                    IsApprove = IsApprove.approved
+                     UserName = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
+                     Email = email,
+                     PhoneNumber = "01556675022",
+                     IsApprove = IsApprove.approved,
+                    NationalID = "11111111111111",
+                    //BirthDate = model.BirthDate,
+                    UserType = UserType.Customer
                 };
                 var resultt = await _userManager.CreateAsync(user, "Asmaa***12345");
                 if (!resultt.Succeeded) return BadRequest(resultt.Errors);
@@ -386,13 +391,15 @@ namespace InsurTech.APIs.Controllers
             if (user == null)
             {
                 var userNameNew = payload.Email.Split('@')[0];
-                user = new AppUser()
+                user = new Customer
                 {
-                    UserType = UserType.Customer,
                     UserName = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
                     Email = payload.Email,
                     PhoneNumber = "01556675022",
-                    IsApprove = IsApprove.approved
+                    IsApprove = IsApprove.approved,
+                    NationalID = "11111111111111",
+                    //BirthDate = model.BirthDate,
+                    UserType = UserType.Customer
                 };
                 var resultt = await _userManager.CreateAsync(user, "Asmaa***12345");
                 await _userManager.AddLoginAsync(user, info);

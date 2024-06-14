@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InsurTech.Repository.Data.Migrations
 {
     [DbContext(typeof(InsurtechContext))]
-    [Migration("20240612232331_AddEntity")]
-    partial class AddEntity
+    [Migration("20240614191949_editInsuranceTable")]
+    partial class editInsuranceTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,6 +21,9 @@ namespace InsurTech.Repository.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("Proxies:ChangeTracking", false)
+                .HasAnnotation("Proxies:CheckEquality", false)
+                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -92,7 +95,7 @@ namespace InsurTech.Repository.Data.Migrations
                         {
                             Id = 2,
                             Description = "Home insurance protects your home and belongings from risks like fire, theft, and natural disasters. Our plans cover repairs, replacements, and living expenses, ensuring peace of mind for homeowners.",
-                            Name = "motorInsurance"
+                            Name = "HomeInsurance"
                         },
                         new
                         {
@@ -169,6 +172,11 @@ namespace InsurTech.Repository.Data.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)")
@@ -185,6 +193,10 @@ namespace InsurTech.Repository.Data.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -235,6 +247,10 @@ namespace InsurTech.Repository.Data.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("AppUser");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("InsurTech.Core.Entities.InsurancePlan", b =>
@@ -244,6 +260,9 @@ namespace InsurTech.Repository.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AvailableInsurance")
+                        .HasColumnType("bit");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -502,6 +521,35 @@ namespace InsurTech.Repository.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("InsurTech.Core.Entities.Identity.Company", b =>
+                {
+                    b.HasBaseType("InsurTech.Core.Entities.Identity.AppUser");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TaxNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasDiscriminator().HasValue("Company");
+                });
+
+            modelBuilder.Entity("InsurTech.Core.Entities.Identity.Customer", b =>
+                {
+                    b.HasBaseType("InsurTech.Core.Entities.Identity.AppUser");
+
+                    b.Property<DateOnly>("BirthDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("NationalID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasDiscriminator().HasValue("Customer");
+                });
+
             modelBuilder.Entity("InsurTech.Core.Entities.HealthInsurancePlan", b =>
                 {
                     b.HasBaseType("InsurTech.Core.Entities.InsurancePlan");
@@ -525,7 +573,7 @@ namespace InsurTech.Repository.Data.Migrations
                     b.ToTable("HealthInsurancePlans");
                 });
 
-            modelBuilder.Entity("InsurTech.Core.Entities.motorInsurancePlan", b =>
+            modelBuilder.Entity("InsurTech.Core.Entities.HomeInsurancePlan", b =>
                 {
                     b.HasBaseType("InsurTech.Core.Entities.InsurancePlan");
 
@@ -544,7 +592,7 @@ namespace InsurTech.Repository.Data.Migrations
                     b.Property<decimal>("WaterDamage")
                         .HasColumnType("decimal(18,2)");
 
-                    b.ToTable("motorInsurancePlans");
+                    b.ToTable("HomeInsurancePlans");
                 });
 
             modelBuilder.Entity("InsurTech.Core.Entities.MotorInsurancePlan", b =>
@@ -593,8 +641,8 @@ namespace InsurTech.Repository.Data.Migrations
 
             modelBuilder.Entity("InsurTech.Core.Entities.Feedback", b =>
                 {
-                    b.HasOne("InsurTech.Core.Entities.Identity.AppUser", "Customer")
-                        .WithMany()
+                    b.HasOne("InsurTech.Core.Entities.Identity.Customer", "Customer")
+                        .WithMany("Feedbacks")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -610,8 +658,8 @@ namespace InsurTech.Repository.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("InsurTech.Core.Entities.Identity.AppUser", "Company")
-                        .WithMany()
+                    b.HasOne("InsurTech.Core.Entities.Identity.Company", "Company")
+                        .WithMany("InsurancePlans")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -741,11 +789,11 @@ namespace InsurTech.Repository.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("InsurTech.Core.Entities.motorInsurancePlan", b =>
+            modelBuilder.Entity("InsurTech.Core.Entities.HomeInsurancePlan", b =>
                 {
                     b.HasOne("InsurTech.Core.Entities.InsurancePlan", null)
                         .WithOne()
-                        .HasForeignKey("InsurTech.Core.Entities.motorInsurancePlan", "Id")
+                        .HasForeignKey("InsurTech.Core.Entities.HomeInsurancePlan", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -779,6 +827,16 @@ namespace InsurTech.Repository.Data.Migrations
             modelBuilder.Entity("InsurTech.Core.Entities.UserRequest", b =>
                 {
                     b.Navigation("RequestQuestions");
+                });
+
+            modelBuilder.Entity("InsurTech.Core.Entities.Identity.Company", b =>
+                {
+                    b.Navigation("InsurancePlans");
+                });
+
+            modelBuilder.Entity("InsurTech.Core.Entities.Identity.Customer", b =>
+                {
+                    b.Navigation("Feedbacks");
                 });
 #pragma warning restore 612, 618
         }
