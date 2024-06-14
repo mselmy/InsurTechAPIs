@@ -18,7 +18,7 @@ namespace InsurTech.APIs.Controllers
         {
             this.unitOfWork = unitOfWork;
         }
-        [HttpPost]
+        [HttpPost("AddHomePlan")]
         public async Task<IActionResult> AddHomePlan(CreateHomeInsuranceDTO HomeInsuranceDTO)
         {
             if (ModelState.IsValid)
@@ -34,7 +34,8 @@ namespace InsurTech.APIs.Controllers
                     GlassBreakage= HomeInsuranceDTO.GlassBreakage,
                     NaturalHazard= HomeInsuranceDTO.NaturalHazard,
                     AttemptedTheft= HomeInsuranceDTO.AttemptedTheft,
-                    FiresAndExplosion= HomeInsuranceDTO.FiresAndExplosion
+                    FiresAndExplosion= HomeInsuranceDTO.FiresAndExplosion,
+                    AvailableInsurance=true
 
                 };
 
@@ -121,7 +122,7 @@ namespace InsurTech.APIs.Controllers
 
 
 
-        [HttpGet]
+        [HttpGet("GetHomeInsurance")]
         public async Task<IActionResult> GetHomeInsurance()
         {
             var HomeInsurance = await unitOfWork.Repository<HomeInsurancePlan>().GetAllAsync();

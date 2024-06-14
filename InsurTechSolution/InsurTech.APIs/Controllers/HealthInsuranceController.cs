@@ -20,7 +20,7 @@ namespace InsurTech.APIs.Controllers
         {
             this.unitOfWork = unitOfWork;
         }
-        [HttpPost]
+        [HttpPost("AddHealthPlan")]
         public async Task<IActionResult> AddHealthPlan(CreateHealthInsuranceDTO healthInsuranceDTO)
         {
             if (ModelState.IsValid)
@@ -32,11 +32,12 @@ namespace InsurTech.APIs.Controllers
                     CategoryId = healthInsuranceDTO.CategoryId,
                     Quotation = healthInsuranceDTO.Quotation,
                     CompanyId = healthInsuranceDTO.CompanyId,
-                    MedicalNetwork=healthInsuranceDTO.MedicalNetwork,
-                    ClinicsCoverage= healthInsuranceDTO.ClinicsCoverage,
-                    HospitalizationAndSurgery=healthInsuranceDTO.HospitalizationAndSurgery,
-                    OpticalCoverage=healthInsuranceDTO.OpticalCoverage,
-                    DentalCoverage=healthInsuranceDTO.DentalCoverage
+                    MedicalNetwork = healthInsuranceDTO.MedicalNetwork,
+                    ClinicsCoverage = healthInsuranceDTO.ClinicsCoverage,
+                    HospitalizationAndSurgery = healthInsuranceDTO.HospitalizationAndSurgery,
+                    OpticalCoverage = healthInsuranceDTO.OpticalCoverage,
+                    DentalCoverage = healthInsuranceDTO.DentalCoverage,
+                    AvailableInsurance = true
 
                 };
 
@@ -78,6 +79,7 @@ namespace InsurTech.APIs.Controllers
                 storedHealthInsurancePlan.HospitalizationAndSurgery = HealthInsuranceDTO.HospitalizationAndSurgery;
                 storedHealthInsurancePlan.OpticalCoverage = HealthInsuranceDTO.OpticalCoverage;
                 storedHealthInsurancePlan.DentalCoverage = HealthInsuranceDTO.DentalCoverage;
+                
 
                 await unitOfWork.Repository<HealthInsurancePlan>().Update(storedHealthInsurancePlan);
                 await unitOfWork.CompleteAsync();
@@ -124,7 +126,7 @@ namespace InsurTech.APIs.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet("GetHealthInsurance")]
         public async Task<IActionResult> GetHealthInsurance()
         {
             var HealthInsurance = await unitOfWork.Repository<HealthInsurancePlan>().GetAllAsync();

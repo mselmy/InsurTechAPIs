@@ -21,6 +21,7 @@ namespace InsurTech.Core.Entities
         public string CompanyId { get; set; }
         public virtual Company Company { get; set; } 
         public virtual ICollection<UserRequest> Requests { get; set; }
+        public bool AvailableInsurance { get; set; }
 
     }
 }
