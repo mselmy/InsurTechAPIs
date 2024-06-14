@@ -13,12 +13,12 @@ namespace InsurTech.Core.Entities.Identity
     }
     public enum IsApprove
 	{
-        rejected, approved, pending
+       pending , approved, rejected
     }
     public class AppUser : IdentityUser
     {
         public UserType UserType { get; set; }
-        public IsApprove IsApprove { get; set; }
+        public IsApprove IsApprove { get; set; } = IsApprove.pending;
         public string Name { get; set; }
         public const int MaxPlainPasswordLength = 128;
         public const int MaxEmailAddressLength = 120;

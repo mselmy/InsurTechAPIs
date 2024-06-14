@@ -26,7 +26,7 @@ namespace InsurTech.APIs.DTOs.Customer
 		[StringLength(14)]
 		public string NationalId { get; set; }
 
-		public DateOnly BirthDate { get; set; }
+	//	public DateOnly BirthDate { get; set; }
 		[JsonIgnore]
 		public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 		[Required]

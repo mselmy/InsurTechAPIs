@@ -29,8 +29,6 @@ namespace InsurTech.APIs.DTOs.Company
 		[Required]
 		public string Location { get; set; }
 
-		[JsonIgnore]
-		public IsApprove Status { get; set; } = IsApprove.pending;
 		[Required]
 		[RegularExpression(@"^01(0|1|2|5)[0-9]{8}$")]
 		public string phoneNumber { get; set; }
