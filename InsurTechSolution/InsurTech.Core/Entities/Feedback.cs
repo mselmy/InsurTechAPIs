@@ -16,6 +16,7 @@ namespace InsurTech.Core.Entities
         public Rating Rating { get; set; }
         public string Comment { get; set; }
         public string CustomerId { get; set; }
-        public virtual AppUser Customer { get; set; }
+        public Customer Customer { get; set; }
+
     }
 }

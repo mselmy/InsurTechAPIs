@@ -17,6 +17,8 @@ namespace InsurTech.Repository.Data
 
         public DbSet<Article> Articles { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Company> Companies { get; set; }
+        public DbSet<Customer> Customers { get; set; }
         public DbSet<FAQ> FAQs { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<HomeInsurancePlan> HomeInsurancePlans { get; set; }
@@ -32,6 +34,9 @@ namespace InsurTech.Repository.Data
         {
             base.OnModelCreating(builder);
             builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+            builder.Entity<Customer>().HasMany(c => c.Feedbacks).WithOne(f => f.Customer).HasForeignKey(f => f.CustomerId);
+            builder.Entity<Company>().HasMany(c => c.InsurancePlans).WithOne(i => i.Company).HasForeignKey(i => i.CompanyId);
 
         }
     }

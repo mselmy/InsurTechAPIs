@@ -12,13 +12,33 @@ namespace InsurTech.Core.Entities.Identity
         Customer, Company, Admin
     }
     public enum IsApprove
-    {
-        rejected, approved, pending
+	{
+       pending , approved, rejected
     }
     public class AppUser : IdentityUser
     {
         public UserType UserType { get; set; }
-        public IsApprove IsApprove { get; set; }
+        public IsApprove IsApprove { get; set; } = IsApprove.pending;
+        public string Name { get; set; }
+        public const int MaxPlainPasswordLength = 128;
+        public const int MaxEmailAddressLength = 120;
+        public const int MaxNameLength = 50;
+        public const int MaxPhoneNumberLength = 11;
 
+	}
+    public class Company : AppUser
+    {
+        public IsApprove IsApprove { get; set; }
+        public string TaxNumber { get; set; }
+        public string Location { get; set; }
+        public virtual ICollection<InsurancePlan> InsurancePlans { get; set; } = new List<InsurancePlan>();
+		
     }
+    public class Customer : AppUser
+    {
+        public string NationalID { get; set; }
+        
+        public DateOnly BirthDate { get; set; }
+		public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+	}
 }
