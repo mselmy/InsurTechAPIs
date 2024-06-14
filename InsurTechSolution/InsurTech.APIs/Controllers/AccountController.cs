@@ -82,12 +82,24 @@ namespace InsurTech.APIs.Controllers
 
 			if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
 
-			return Ok(new UserDTO()
-            {
-				Email = User.Email,
-				Name = User.UserName,
-				Token = await _tokenService.CreateTokenAsync(User, _userManager)
-			});
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(User);
+
+            var confirmationLink = Url.Action("ConfirmEmail", "Account", new { token, email = User.Email }, Request.Scheme);
+
+            if (confirmationLink is null) return BadRequest(new ApiResponse(400, "Error in sending confirmation email"));
+
+            await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
+
+
+
+			return Ok(
+                    
+                new
+                {
+                    Message = $"Company Registered Successfully, Please check your email to confirm your account {User.Email}",
+                }
+                );
 		}
 
         #endregion
@@ -146,13 +158,26 @@ namespace InsurTech.APIs.Controllers
 
 			if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
 
-			return Ok(new UserDTO()
-            {
-				Email = User.Email,
-				Name = User.UserName,
-				Token = await _tokenService.CreateTokenAsync(User, _userManager)
-			});
-		}
+
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(User);
+
+            var confirmationLink = Url.Action("ConfirmEmail", "Account", new { token, email = User.Email }, Request.Scheme);
+
+            if (confirmationLink is null) return BadRequest(new ApiResponse(400, "Error in sending confirmation email"));
+
+            await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
+
+
+
+            return Ok(
+
+                new
+                {
+                    Message = $"Customer Registered Successfully, Please check your email to confirm your account {User.Email}",
+                }
+                );
+        }
 
 		#endregion
 
@@ -195,11 +220,55 @@ namespace InsurTech.APIs.Controllers
 			await _signInManager.SignOutAsync();
 			return Ok();
 		}
-		#endregion
+        #endregion
 
 
+        #region resend confirmation Emai
+        [HttpPost("ResendConfirmationEmail")]
 
-	
+        public async Task<ActionResult> ResendConfirmationEmail(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return BadRequest(new ApiResponse(404, "User not found"));
+            }
+
+            if (user.EmailConfirmed)
+            {
+                return BadRequest(new ApiResponse(400, "Email is already confirmed"));
+            }
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = Url.Action("ConfirmEmail", "Account", new { token, email = user.Email }, Request.Scheme);
+            await _emailService.SendConfirmationEmail(user.Email, confirmationLink);
+
+            return Ok(new { Message = $"Confirmation email sent to your email  {user.Email}" });
+        }
+
+           
+        #endregion
+
+        #region Confirm Email
+        [HttpGet("ConfirmEmail")]
+        public async Task<IActionResult> ConfirmEmail(string token, string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return BadRequest(new ApiResponse(404, "User not found"));
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            if (!result.Succeeded)
+            {
+                return BadRequest(new ApiResponse(400, "Error confirming email"));
+            }
+
+            return Ok(new { Message = "Email confirmed successfully." });
+        }
+        #endregion
+
         #region Reset Password
 
         [HttpPost("ForgotPassword")]
