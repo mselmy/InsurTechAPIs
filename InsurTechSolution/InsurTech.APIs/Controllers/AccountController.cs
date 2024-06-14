@@ -7,6 +7,7 @@ using InsurTech.Core.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -167,6 +168,8 @@ namespace InsurTech.APIs.Controllers
 		[HttpPost("RejectCustomer")]
 		public async Task<ActionResult> RejectCustomer(string id)
 		{
+			//check iff the current user is admin
+			//if(User.FindFirst(ClaimTypes.NameIdentifier)?.Value != "admin") return Unauthorized(new ApiResponse(401, "Unauthorized")); 
 			var user = await _userManager.FindByIdAsync(id);
 			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
 			if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a customer"));
