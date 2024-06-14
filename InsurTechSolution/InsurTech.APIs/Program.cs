@@ -4,6 +4,8 @@ using InsurTech.Core;
 using InsurTech.Repository.Data;
 using InsurTech.Repository;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using InsurTech.Core.Entities.Identity;
 
 namespace InsurTech.APIs
 {
@@ -28,7 +30,7 @@ namespace InsurTech.APIs
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
+            
             //======================================================
             //======================================================
 

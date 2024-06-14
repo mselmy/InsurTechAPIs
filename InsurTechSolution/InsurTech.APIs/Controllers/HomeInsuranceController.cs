@@ -1,6 +1,9 @@
 ﻿using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
+using InsurTech.APIs.DTOs.MotorInsurancePlanDTO;
+using InsurTech.Core;
 using InsurTech.Core.Entities;
 using InsurTech.Core.Repositories;
+using InsurTech.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,11 +13,10 @@ namespace InsurTech.APIs.Controllers
     [ApiController]
     public class HomeInsuranceController : ControllerBase
     {
-
-        private readonly IGenericRepository<HomeInsurancePlan> HomeInsurancePlanRepository;
-        public HomeInsuranceController(IGenericRepository<HomeInsurancePlan> _homeInsurancePlanRepository)
+        private readonly IUnitOfWork unitOfWork;
+        public HomeInsuranceController(IUnitOfWork unitOfWork)
         {
-            HomeInsurancePlanRepository = _homeInsurancePlanRepository;
+            this.unitOfWork = unitOfWork;
         }
         [HttpPost]
         public async Task<IActionResult> AddHomePlan(CreateHomeInsuranceDTO homeInsuranceDTO)
@@ -36,12 +38,54 @@ namespace InsurTech.APIs.Controllers
 
                 };
 
-                await HomeInsurancePlanRepository.AddAsync(homeInsurancePlan);
+                await unitOfWork.Repository<HomeInsurancePlan>().AddAsync(homeInsurancePlan);
+                await unitOfWork.CompleteAsync();
                 return Ok(homeInsuranceDTO);
             }
             else
             {
                 return BadRequest();
+            }
+        }
+
+
+
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> EditHomePlan(int id, EditHomeInsuranceDTO HomeInsuranceDTO)
+        {
+            if (id <= 0 || HomeInsuranceDTO == null)
+            {
+                return BadRequest();
+            }
+
+            if (ModelState.IsValid)
+            {
+                var storedHomeInsurancePlan = await unitOfWork.Repository<HomeInsurancePlan>().GetByIdAsync(id);
+                if (storedHomeInsurancePlan == null)
+                {
+                    return NotFound();
+                }
+
+                storedHomeInsurancePlan.YearlyCoverage = HomeInsuranceDTO.YearlyCoverage;
+                storedHomeInsurancePlan.Level = HomeInsuranceDTO.Level;
+                storedHomeInsurancePlan.CategoryId = HomeInsuranceDTO.CategoryId;
+                storedHomeInsurancePlan.Quotation = HomeInsuranceDTO.Quotation;
+                storedHomeInsurancePlan.CompanyId = HomeInsuranceDTO.CompanyId;
+                storedHomeInsurancePlan.WaterDamage = HomeInsuranceDTO.WaterDamage;
+                storedHomeInsurancePlan.GlassBreakage = HomeInsuranceDTO.GlassBreakage;
+                storedHomeInsurancePlan.NaturalHazard = HomeInsuranceDTO.NaturalHazard;
+                storedHomeInsurancePlan.AttemptedTheft = HomeInsuranceDTO.AttemptedTheft;
+                storedHomeInsurancePlan.FiresAndExplosion = HomeInsuranceDTO.FiresAndExplosion;
+
+                await unitOfWork.Repository<HomeInsurancePlan>().Update(storedHomeInsurancePlan);
+                await unitOfWork.CompleteAsync();
+
+                return Ok(HomeInsuranceDTO);
+            }
+            else
+            {
+                return BadRequest(ModelState);
             }
         }
     }

@@ -18,6 +18,8 @@ namespace InsurTech.Repository
         public UnitOfWork(InsurtechContext db)
         {
             _db = db;
+            _repos = new Hashtable();
+
         }
         public async Task<int> CompleteAsync()
         {
