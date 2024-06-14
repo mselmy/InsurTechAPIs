@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -18,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\InsurTech.Core\InsurTech.Core.csproj" />
     <ProjectReference Include="..\InsurTech.Repository\InsurTech.Repository.csproj" />
+    <ProjectReference Include="..\InsurTech.Service\InsurTech.Service.csproj" />
   </ItemGroup>
 
 </Project>

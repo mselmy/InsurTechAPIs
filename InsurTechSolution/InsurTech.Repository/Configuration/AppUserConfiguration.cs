@@ -18,7 +18,7 @@ namespace InsurTech.Repository.Configuration
             //builder.Property(a => a.p).HasAnnotation("RegularExpression", @"^(?=.[A-Za-z])(?=.\d)[A-Za-z\d]{8,}$");
             builder.Property(a => a.UserName).HasAnnotation("MinLength", 3).HasMaxLength(20).HasAnnotation("RegularExpression", @"^[a-zA-Z][a-zA-Z0-9]*$");
             builder.HasIndex(a => a.Email).IsUnique();
-
+            builder.UseTphMappingStrategy();
 
 
         }
