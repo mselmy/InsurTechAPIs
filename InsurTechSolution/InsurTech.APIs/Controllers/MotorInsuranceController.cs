@@ -125,7 +125,7 @@ namespace InsurTech.APIs.Controllers
         public async Task<IActionResult> GetMotorInsurance()
         {
             var motorInsurance = await _unitOfWork.Repository<MotorInsurancePlan>().GetAllAsync();
-            motorInsurance = motorInsurance.Where(a => a.AvailableInsurance = true).ToList();
+            motorInsurance = motorInsurance.Where(a => a.AvailableInsurance == true).ToList();
             if (motorInsurance.Count() != 0)
             {
                 List<MotorInsuranceDTO> motorinsuranceDto = new List<MotorInsuranceDTO>();

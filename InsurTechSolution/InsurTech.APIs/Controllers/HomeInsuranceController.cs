@@ -126,7 +126,7 @@ namespace InsurTech.APIs.Controllers
         public async Task<IActionResult> GetHomeInsurance()
         {
             var HomeInsurance = await unitOfWork.Repository<HomeInsurancePlan>().GetAllAsync();
-            HomeInsurance = HomeInsurance.Where(a => a.AvailableInsurance = true).ToList();
+            HomeInsurance = HomeInsurance.Where(a => a.AvailableInsurance == true).ToList();
 
             if (HomeInsurance.Count() != 0)
             {

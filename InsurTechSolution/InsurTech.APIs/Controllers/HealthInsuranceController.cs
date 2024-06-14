@@ -130,7 +130,7 @@ namespace InsurTech.APIs.Controllers
         public async Task<IActionResult> GetHealthInsurance()
         {
             var HealthInsurance = await unitOfWork.Repository<HealthInsurancePlan>().GetAllAsync();
-            HealthInsurance=HealthInsurance.Where(a=>a.AvailableInsurance=true).ToList();
+            HealthInsurance=HealthInsurance.Where(a=>a.AvailableInsurance==true).ToList();
             if (HealthInsurance.Count()!=0)
             {
                 List<HealthInsuranceDTO> HealthinsuranceDto = new List<HealthInsuranceDTO>();
