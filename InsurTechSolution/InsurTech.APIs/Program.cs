@@ -107,6 +107,10 @@ namespace InsurTech.APIs
 
             #endregion
 
+            #region Mapper
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            #endregion
+
             //======================================================
             //======================================================
 

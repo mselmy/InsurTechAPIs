@@ -40,5 +40,5 @@ namespace InsurTech.Core.Entities.Identity
         
         public DateOnly BirthDate { get; set; }
 		public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
-	}
+    }
 }

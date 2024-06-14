@@ -95,7 +95,7 @@ namespace InsurTech.APIs.Controllers
         {
 
             var motorInsurance = await _unitOfWork.Repository<MotorInsurancePlan>().GetByIdAsync(id);
-            if(motorInsurance!=null)
+            if(motorInsurance!=null || motorInsurance?.AvailableInsurance != false)
             {
                 var NumberOfRequests = motorInsurance.Requests.Count();
                 MotorInsuranceDTO motorinsuranceDto = new MotorInsuranceDTO()
@@ -125,9 +125,11 @@ namespace InsurTech.APIs.Controllers
         public async Task<IActionResult> GetMotorInsurance()
         {
             var motorInsurance = await _unitOfWork.Repository<MotorInsurancePlan>().GetAllAsync();
+            motorInsurance = motorInsurance.Where(a => a.AvailableInsurance == true).ToList();
             if (motorInsurance.Count() != 0)
             {
                 List<MotorInsuranceDTO> motorinsuranceDto = new List<MotorInsuranceDTO>();
+
                 foreach (var item in motorInsurance)
                 {
                     var NumberOfRequests = item.Requests.Count();
