@@ -29,11 +29,13 @@ namespace InsurTech.Repository
         public async Task AddAsync(T entity)
         {
             await _db.Set<T>().AddAsync(entity);
+
         }
 
         public async Task Update(T entity)
         {
             _db.Set<T>().Update(entity);
+
         }
 
         public async Task Delete(T entity)
