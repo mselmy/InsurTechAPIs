@@ -14,6 +14,7 @@ namespace InsurTech.Core.Entities
         public DateOnly Date { get; set; }
         public string ArticleImg { get; set; }
         public string UserId { get; set; }
-        public AppUser User { get; set; }
+        public virtual AppUser User { get; set; }
     }
 }
+  

@@ -20,6 +20,6 @@ namespace InsurTech.Core.Entities
         public decimal Quotation { get; set; }
         public string CompanyId { get; set; }
         public virtual AppUser Company { get; set; }
-        public ICollection<UserRequest> Requests { get; set; }
+        public virtual ICollection<UserRequest> Requests { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace InsurTech.Core.Entities
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public ICollection<InsurancePlan> InsurancePlans { get; set; } = new List<InsurancePlan>();
-        public ICollection<Question> QuestionPlans { get; set; } = new List<Question>();
+        public virtual ICollection<InsurancePlan> InsurancePlans { get; set; } = new List<InsurancePlan>();
+        public virtual ICollection<Question> QuestionPlans { get; set; } = new List<Question>();
     }
 }

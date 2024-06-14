@@ -1,11 +1,11 @@
-﻿using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
-using InsurTech.APIs.DTOs.MotorInsurancePlanDTO;
-using InsurTech.Core;
+﻿using InsurTech.Core;
 using InsurTech.Core.Entities;
 using InsurTech.Core.Repositories;
 using InsurTech.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
+using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -19,28 +19,28 @@ namespace InsurTech.APIs.Controllers
             this.unitOfWork = unitOfWork;
         }
         [HttpPost]
-        public async Task<IActionResult> AddHomePlan(CreateHomeInsuranceDTO homeInsuranceDTO)
+        public async Task<IActionResult> AddHomePlan(CreateHomeInsuranceDTO HomeInsuranceDTO)
         {
             if (ModelState.IsValid)
             {
-                var homeInsurancePlan = new HomeInsurancePlan
+                var HomeInsurancePlan = new HomeInsurancePlan
                 {
-                    YearlyCoverage = homeInsuranceDTO.YearlyCoverage,
-                    Level = homeInsuranceDTO.Level,
-                    CategoryId = homeInsuranceDTO.CategoryId,
-                    Quotation = homeInsuranceDTO.Quotation,
-                    CompanyId = homeInsuranceDTO.CompanyId,
-                    WaterDamage= homeInsuranceDTO.WaterDamage,
-                    GlassBreakage= homeInsuranceDTO.GlassBreakage,
-                    NaturalHazard= homeInsuranceDTO.NaturalHazard,
-                    AttemptedTheft= homeInsuranceDTO.AttemptedTheft,
-                    FiresAndExplosion= homeInsuranceDTO.FiresAndExplosion
+                    YearlyCoverage = HomeInsuranceDTO.YearlyCoverage,
+                    Level = HomeInsuranceDTO.Level,
+                    CategoryId = HomeInsuranceDTO.CategoryId,
+                    Quotation = HomeInsuranceDTO.Quotation,
+                    CompanyId = HomeInsuranceDTO.CompanyId,
+                    WaterDamage= HomeInsuranceDTO.WaterDamage,
+                    GlassBreakage= HomeInsuranceDTO.GlassBreakage,
+                    NaturalHazard= HomeInsuranceDTO.NaturalHazard,
+                    AttemptedTheft= HomeInsuranceDTO.AttemptedTheft,
+                    FiresAndExplosion= HomeInsuranceDTO.FiresAndExplosion
 
                 };
 
-                await unitOfWork.Repository<HomeInsurancePlan>().AddAsync(homeInsurancePlan);
+                await unitOfWork.Repository<HomeInsurancePlan>().AddAsync(HomeInsurancePlan);
                 await unitOfWork.CompleteAsync();
-                return Ok(homeInsuranceDTO);
+                return Ok(HomeInsuranceDTO);
             }
             else
             {
@@ -88,6 +88,72 @@ namespace InsurTech.APIs.Controllers
                 return BadRequest(ModelState);
             }
         }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetHomeInsuranceById(int id)
+        {
+
+            var HomeInsurance = await unitOfWork.Repository<HomeInsurancePlan>().GetByIdAsync(id);
+            if (HomeInsurance != null)
+            {
+                var NumberOfRequests = HomeInsurance.Requests.Count();
+                HomeInsuranceDTO HomeInsuranceDto = new HomeInsuranceDTO()
+                {
+                    NumberOfUsers = NumberOfRequests,
+                    Id = HomeInsurance.Id,
+                    Level = HomeInsurance.Level,
+                    GlassBreakage = HomeInsurance.GlassBreakage,
+                    AttemptedTheft = HomeInsurance.AttemptedTheft,
+                    FiresAndExplosion = HomeInsurance.FiresAndExplosion,
+                    NaturalHazard = HomeInsurance.NaturalHazard,
+                    WaterDamage = HomeInsurance.WaterDamage,
+                    Quotation = HomeInsurance.Quotation,
+                    YearlyCoverage = HomeInsurance.YearlyCoverage,
+                    Category = HomeInsurance.Category.Name,
+                    Company = HomeInsurance.Company?.UserName ?? "no comapny"
+                };
+                return Ok(HomeInsuranceDto);
+            }
+            else
+            {
+                return BadRequest("No Matches Insurances found");
+            }
+        }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetHomeInsurance()
+        {
+            var HomeInsurance = await unitOfWork.Repository<HomeInsurancePlan>().GetAllAsync();
+            if (HomeInsurance.Count() != 0)
+            {
+                List<AllHomeInsuranceDTO> HomeinsuranceDto = new List<AllHomeInsuranceDTO>();
+                foreach (var item in HomeInsurance)
+                {
+                    var Homeinsuranceitem = new AllHomeInsuranceDTO()
+                    {
+                        Id = item.Id,
+                        Level = item.Level,
+                        GlassBreakage = item.GlassBreakage,
+                        AttemptedTheft = item.AttemptedTheft,
+                        FiresAndExplosion = item.FiresAndExplosion,
+                        NaturalHazard = item.NaturalHazard,
+                        WaterDamage = item.WaterDamage,
+                        Quotation = item.Quotation,
+                        YearlyCoverage = item.YearlyCoverage,
+                        Category = item.Category.Name,
+                        Company = item.Company?.UserName ?? "no comapny"
+                    };
+                    HomeinsuranceDto.Add(Homeinsuranceitem);
+                }
+                return Ok(HomeinsuranceDto);
+            }
+            else
+            {
+                return BadRequest("No Insurances Yet");
+            }
+        }
+
     }
 }
 

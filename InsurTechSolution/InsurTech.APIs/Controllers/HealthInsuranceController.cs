@@ -1,5 +1,6 @@
 ﻿using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
-using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
+using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
+using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
 using InsurTech.Core;
 using InsurTech.Core.Entities;
 using InsurTech.Core.Repositories;
@@ -91,6 +92,70 @@ namespace InsurTech.APIs.Controllers
 
 
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetHealthInsuranceById(int id)
+        {
+
+            var HealthInsurance = await unitOfWork.Repository<HealthInsurancePlan>().GetByIdAsync(id);
+            if (HealthInsurance != null)
+            {
+                var NumberOfRequests = HealthInsurance.Requests.Count();
+                HealthInsuranceDTO HealthInsuranceDto = new HealthInsuranceDTO()
+                {
+                    NumberOfUsers = NumberOfRequests,
+                    Id = HealthInsurance.Id,
+                    Level = HealthInsurance.Level,
+                    HospitalizationAndSurgery = HealthInsurance.HospitalizationAndSurgery,
+                    ClinicsCoverage = HealthInsurance.ClinicsCoverage,
+                    DentalCoverage = HealthInsurance.DentalCoverage,
+                    OpticalCoverage = HealthInsurance.OpticalCoverage,
+                    MedicalNetwork = HealthInsurance.MedicalNetwork,
+                    Quotation = HealthInsurance.Quotation,
+                    YearlyCoverage = HealthInsurance.YearlyCoverage,
+                    Category = HealthInsurance.Category.Name,
+                    Company = HealthInsurance.Company?.UserName ?? "no comapny"
+                };
+                return Ok(HealthInsuranceDto);
+            }
+            else
+            {
+                return BadRequest("No Matches Insurances found");
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetHealthInsurance()
+        {
+            var HealthInsurance = await unitOfWork.Repository<HealthInsurancePlan>().GetAllAsync();
+            if (HealthInsurance.Count()!=0)
+            {
+                List<AllHealthInsuranceDTO> HealthinsuranceDto = new List<AllHealthInsuranceDTO>();
+                foreach (var item in HealthInsurance)
+                {
+                    var Healthinsuranceitem = new AllHealthInsuranceDTO()
+                    {
+                        Id = item.Id,
+                        Level = item.Level,
+                        HospitalizationAndSurgery = item.HospitalizationAndSurgery,
+                        ClinicsCoverage = item.ClinicsCoverage,
+                        DentalCoverage = item.DentalCoverage,
+                        OpticalCoverage = item.OpticalCoverage,
+                        MedicalNetwork = item.MedicalNetwork,
+                        Quotation = item.Quotation,
+                        YearlyCoverage = item.YearlyCoverage,
+                        Category = item.Category.Name,
+                        Company = item.Company?.UserName ?? "no comapny"
+                    };
+                    HealthinsuranceDto.Add(Healthinsuranceitem);
+                }
+                return Ok(HealthinsuranceDto);
+            }
+            else
+            {
+                return BadRequest("No Insurances Yet");
+            }
+        }
     }
 }
 

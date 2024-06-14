@@ -92,7 +92,7 @@ namespace InsurTech.Repository.Data.Migrations
                         {
                             Id = 2,
                             Description = "Home insurance protects your home and belongings from risks like fire, theft, and natural disasters. Our plans cover repairs, replacements, and living expenses, ensuring peace of mind for homeowners.",
-                            Name = "HomeInsurance"
+                            Name = "motorInsurance"
                         },
                         new
                         {
@@ -525,7 +525,7 @@ namespace InsurTech.Repository.Data.Migrations
                     b.ToTable("HealthInsurancePlans");
                 });
 
-            modelBuilder.Entity("InsurTech.Core.Entities.HomeInsurancePlan", b =>
+            modelBuilder.Entity("InsurTech.Core.Entities.motorInsurancePlan", b =>
                 {
                     b.HasBaseType("InsurTech.Core.Entities.InsurancePlan");
 
@@ -544,7 +544,7 @@ namespace InsurTech.Repository.Data.Migrations
                     b.Property<decimal>("WaterDamage")
                         .HasColumnType("decimal(18,2)");
 
-                    b.ToTable("HomeInsurancePlans");
+                    b.ToTable("motorInsurancePlans");
                 });
 
             modelBuilder.Entity("InsurTech.Core.Entities.MotorInsurancePlan", b =>
@@ -741,11 +741,11 @@ namespace InsurTech.Repository.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("InsurTech.Core.Entities.HomeInsurancePlan", b =>
+            modelBuilder.Entity("InsurTech.Core.Entities.motorInsurancePlan", b =>
                 {
                     b.HasOne("InsurTech.Core.Entities.InsurancePlan", null)
                         .WithOne()
-                        .HasForeignKey("InsurTech.Core.Entities.HomeInsurancePlan", "Id")
+                        .HasForeignKey("InsurTech.Core.Entities.motorInsurancePlan", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
