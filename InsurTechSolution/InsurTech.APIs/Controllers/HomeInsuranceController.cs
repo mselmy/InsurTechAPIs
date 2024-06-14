@@ -127,10 +127,11 @@ namespace InsurTech.APIs.Controllers
             var HomeInsurance = await unitOfWork.Repository<HomeInsurancePlan>().GetAllAsync();
             if (HomeInsurance.Count() != 0)
             {
-                List<AllHomeInsuranceDTO> HomeinsuranceDto = new List<AllHomeInsuranceDTO>();
+                List<HomeInsuranceDTO> HomeinsuranceDto = new List<HomeInsuranceDTO>();
                 foreach (var item in HomeInsurance)
                 {
-                    var Homeinsuranceitem = new AllHomeInsuranceDTO()
+                    var NumberOfRequests = item.Requests.Count();
+                    var Homeinsuranceitem = new HomeInsuranceDTO()
                     {
                         Id = item.Id,
                         Level = item.Level,
@@ -142,7 +143,8 @@ namespace InsurTech.APIs.Controllers
                         Quotation = item.Quotation,
                         YearlyCoverage = item.YearlyCoverage,
                         Category = item.Category.Name,
-                        Company = item.Company?.UserName ?? "no comapny"
+                        Company = item.Company?.UserName ?? "no comapny",
+                        NumberOfUsers=NumberOfRequests
                     };
                     HomeinsuranceDto.Add(Homeinsuranceitem);
                 }

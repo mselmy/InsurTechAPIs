@@ -130,10 +130,11 @@ namespace InsurTech.APIs.Controllers
             var HealthInsurance = await unitOfWork.Repository<HealthInsurancePlan>().GetAllAsync();
             if (HealthInsurance.Count()!=0)
             {
-                List<AllHealthInsuranceDTO> HealthinsuranceDto = new List<AllHealthInsuranceDTO>();
+                List<HealthInsuranceDTO> HealthinsuranceDto = new List<HealthInsuranceDTO>();
                 foreach (var item in HealthInsurance)
                 {
-                    var Healthinsuranceitem = new AllHealthInsuranceDTO()
+                    var NumberOfRequests = item.Requests.Count();
+                    var Healthinsuranceitem = new HealthInsuranceDTO()
                     {
                         Id = item.Id,
                         Level = item.Level,
@@ -145,7 +146,8 @@ namespace InsurTech.APIs.Controllers
                         Quotation = item.Quotation,
                         YearlyCoverage = item.YearlyCoverage,
                         Category = item.Category.Name,
-                        Company = item.Company?.UserName ?? "no comapny"
+                        Company = item.Company?.UserName ?? "no comapny",
+                        NumberOfUsers=NumberOfRequests
                     };
                     HealthinsuranceDto.Add(Healthinsuranceitem);
                 }

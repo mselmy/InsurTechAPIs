@@ -126,10 +126,11 @@ namespace InsurTech.APIs.Controllers
             var motorInsurance = await _unitOfWork.Repository<MotorInsurancePlan>().GetAllAsync();
             if (motorInsurance.Count() != 0)
             {
-                List<AllMotorInsuranceDTO> motorinsuranceDto = new List<AllMotorInsuranceDTO>();
+                List<MotorInsuranceDTO> motorinsuranceDto = new List<MotorInsuranceDTO>();
                 foreach (var item in motorInsurance)
                 {
-                    var motorinsuranceitem=new AllMotorInsuranceDTO()
+                    var NumberOfRequests = item.Requests.Count();
+                    var motorinsuranceitem =new MotorInsuranceDTO()
                     {
                         Id = item.Id,
                         Level = item.Level,
@@ -141,7 +142,10 @@ namespace InsurTech.APIs.Controllers
                         Quotation = item.Quotation,
                         YearlyCoverage = item.YearlyCoverage,
                         Category = item.Category.Name,
-                        Company = item.Company?.UserName ?? "no comapny"
+                        Company = item.Company?.UserName ?? "no comapny",
+                        NumberOfUsers = NumberOfRequests,
+
+
                     };
                     motorinsuranceDto.Add(motorinsuranceitem);
                 }
