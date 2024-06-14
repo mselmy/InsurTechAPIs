@@ -23,7 +23,7 @@ namespace InsurTech.APIs.Controllers
             _userManager = userManager;
         }
 
-        [HttpPost]
+        [HttpPost("AddMotorPlan")]
         public async Task<IActionResult> AddMotorPlan(CreateMotorInsuranceDTO motorInsuranceDTO)
         {
             if (ModelState.IsValid)
@@ -39,7 +39,8 @@ namespace InsurTech.APIs.Controllers
                     Theft = motorInsuranceDTO.Theft,
                     ThirdPartyLiability = motorInsuranceDTO.ThirdPartyLiability,
                     OwnDamage = motorInsuranceDTO.OwnDamage,
-                    LegalExpenses = motorInsuranceDTO.LegalExpenses
+                    LegalExpenses = motorInsuranceDTO.LegalExpenses,
+                    AvailableInsurance=true
                 };
 
                 await _unitOfWork.Repository<MotorInsurancePlan>().AddAsync(motorInsurancePlan);
@@ -120,7 +121,7 @@ namespace InsurTech.APIs.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetMotorInsurance")]
         public async Task<IActionResult> GetMotorInsurance()
         {
             var motorInsurance = await _unitOfWork.Repository<MotorInsurancePlan>().GetAllAsync();

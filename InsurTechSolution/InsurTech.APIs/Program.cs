@@ -73,10 +73,6 @@ namespace InsurTech.APIs
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 
-            builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-            .AddEntityFrameworkStores<InsurtechContext>()
-            .AddDefaultTokenProviders();
-
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
 
