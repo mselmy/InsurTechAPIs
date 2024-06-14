@@ -3,10 +3,14 @@ using InsurTech.APIs.DTOs;
 using InsurTech.APIs.Errors;
 using InsurTech.Core.Entities.Identity;
 using InsurTech.Core.Service;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Google.Apis.Auth;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -40,7 +44,7 @@ namespace InsurTech.APIs.Controllers
             if (!Result.Succeeded) return Unauthorized(new ApiResponse(401));
             if (!(User.IsApprove==IsApprove.approved)) return Unauthorized(new ApiResponse(401));
 
-
+            
             return Ok(new UserDTO()
             {
                 Email = User.Email,
@@ -98,7 +102,92 @@ namespace InsurTech.APIs.Controllers
         }
 
 
-       
+
+
+        #endregion
+
+        #region  Login By Google In Api
+
+        [HttpGet("LoginWithGoogle")]
+        public IActionResult LoginWithGoogle()
+        {
+            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse") };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("GoogleResponse")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            if (!result.Succeeded)
+            {
+                return BadRequest(new ApiResponse(400, "Google authentication failed"));
+            }
+
+            var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
+            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var userName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+            if (email == null)
+            {
+                return BadRequest(new ApiResponse(400, "Google authentication failed"));
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                var userNameNew = email.Split('@')[0];
+                user = new AppUser()
+                {
+                    UserType = UserType.Admin,
+                    UserName = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
+                    Email = email,
+                    PhoneNumber = "01556675022",
+                    IsApprove = IsApprove.approved
+                };
+                var resultt = await _userManager.CreateAsync(user, "Asmaa***12345");
+                if (!resultt.Succeeded) return BadRequest(resultt.Errors);
+
+            }
+
+            var userDto = new UserDTO
+            {
+                Email = user.Email,
+                Name = user.UserName,
+                Token = await _tokenService.CreateTokenAsync(user, _userManager)
+            };
+
+            return Ok(userDto);
+        }
+        #endregion
+
+        #region Login By Google Front
+
+        [HttpPost("GoogleLogin")]
+        public async Task<IActionResult> GoogleLogin([FromBody] string token)
+        {
+            var payload = await GoogleJsonWebSignature.ValidateAsync(token);
+            var info = new UserLoginInfo("Google", payload.Subject, "Google");
+            var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+
+            if (user == null)
+            {
+                var userNameNew = payload.Email.Split('@')[0];
+                user = new AppUser()
+                {
+                    UserType = UserType.Customer,
+                    UserName = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
+                    Email = payload.Email,
+                    PhoneNumber = "01556675022",
+                    IsApprove = IsApprove.approved
+                };
+                var resultt = await _userManager.CreateAsync(user, "Asmaa***12345");
+                await _userManager.AddLoginAsync(user, info);
+            }
+
+            var jwtToken = await _tokenService.CreateTokenAsync(user, _userManager);
+            return Ok(new { Token = jwtToken });
+        }
 
         #endregion
     }
