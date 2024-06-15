@@ -14,5 +14,8 @@ namespace InsurTech.Core.Repositories
         public Task AddAsync(T entity);
         public Task Update(T entity);
         public Task Delete(T entity);
-    }
+        public Task AddListAsync(List<T> entity);
+
+
+	}
 }
