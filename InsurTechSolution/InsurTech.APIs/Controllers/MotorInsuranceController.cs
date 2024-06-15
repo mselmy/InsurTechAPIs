@@ -1,4 +1,7 @@
-﻿using InsurTech.APIs.DTOs.MotorInsurancePlanDTO;
+﻿using AutoMapper;
+using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
+using InsurTech.APIs.DTOs.MotorInsurancePlanDTO;
+using InsurTech.APIs.Errors;
 using InsurTech.Core;
 using InsurTech.Core.Entities;
 using InsurTech.Core.Repositories;
@@ -14,13 +17,12 @@ namespace InsurTech.APIs.Controllers
     public class MotorInsuranceController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IMapper _mapper;
 
-
-        public MotorInsuranceController(IUnitOfWork unitOfWork, UserManager<IdentityUser> userManager)
+        public MotorInsuranceController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
-            _userManager = userManager;
+            _mapper = mapper;
         }
 
         [HttpPost("AddMotorPlan")]
@@ -53,7 +55,7 @@ namespace InsurTech.APIs.Controllers
             }
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("EditMotorPlan/{id}")]
         public async Task<IActionResult> EditMotorPlan(int id, EditMotorInsuranceDTO motorInsuranceDTO)
         {
             if (id <= 0 || motorInsuranceDTO == null)
@@ -90,7 +92,7 @@ namespace InsurTech.APIs.Controllers
                 return BadRequest(ModelState);
             }
         }
-        [HttpGet("{id}")]
+        [HttpGet("GetMotorInsuranceById/{id}")]
         public async Task<IActionResult> GetMotorInsuranceById(int id)
         {
 
@@ -158,6 +160,21 @@ namespace InsurTech.APIs.Controllers
             {
                 return BadRequest("No Insurances Yet");
             }
+        }
+
+        [HttpGet("GetMotorInsuranceByCompanyId/{id}")]
+        public async Task<IActionResult> GetMotorInsuranceByCompanyId(string id)
+        {
+            var motorInsurancePlans = await _unitOfWork.Repository<MotorInsurancePlan>().GetAllAsync();
+            var filteredMotorPlans = motorInsurancePlans
+                .Where(plan => plan.AvailableInsurance && plan.CompanyId == id).ToList();
+            var motorInsuranceDtos = _mapper.Map<List<MotorInsuranceDTO>>(filteredMotorPlans);
+
+            if (motorInsuranceDtos.Count == 0)
+            {
+                return NotFound(new ApiResponse(404, "No Insurances Yet"));
+            }
+            return Ok(motorInsuranceDtos);
         }
 
 
