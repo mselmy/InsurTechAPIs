@@ -10,5 +10,6 @@ namespace InsurTech.Core.Service
     {
         Task SendEmailAsync(string toEmail, string subject, string message);
         Task SendPasswordResetEmail(string toEmail, string resetUrl);
+        Task SendConfirmationEmail(string toEmail, string confirmationUrl);
     }
 }

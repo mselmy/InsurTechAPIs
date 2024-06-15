@@ -1,4 +1,4 @@
-﻿using InsurTech.APIs.DTOs;
+using InsurTech.APIs.DTOs;
 using InsurTech.APIs.DTOs.Company;
 using InsurTech.APIs.DTOs.Customer;
 ﻿using Azure;
@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Google.Apis.Auth;
 using Microsoft.Identity.Client.AppConfig;
+using InsurTech.Core;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -33,7 +34,7 @@ namespace InsurTech.APIs.Controllers
             _tokenService = tokenService;
             _emailService = emailService;
         }
-        
+
         #region Login
 
         [HttpPost("Login")]
@@ -45,9 +46,9 @@ namespace InsurTech.APIs.Controllers
             var Result = await _signInManager.CheckPasswordSignInAsync(User, model.Password, false);
 
             if (!Result.Succeeded) return Unauthorized(new ApiResponse(401));
-            if (!(User.IsApprove==IsApprove.approved)) return Unauthorized(new ApiResponse(401));
+            if (!(User.IsApprove == IsApprove.approved)) return Unauthorized(new ApiResponse(401));
 
-            
+
             return Ok(new UserDTO()
             {
                 Email = User.Email,
@@ -64,149 +65,140 @@ namespace InsurTech.APIs.Controllers
         #region RegisterCompany
 
         [HttpPost("RegisterCompany")]
-		public async Task<ActionResult<UserDTO>> RegisterCompany(RegisterCompanyInput model)
+        public async Task<ActionResult<ApiResponse>> RegisterCompany(RegisterCompanyInput model)
         {
-			if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
-			if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
+            if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
+            if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
 
-			var User = new Company
+            var User = new Company
             {
-				Email = model.EmailAddress,
-				UserName = model.UserName,
-				Name = model.Name,
-				PhoneNumber = model.phoneNumber,
-				IsApprove = IsApprove.pending,
-				TaxNumber = model.TaxNumber,
-				Location = model.Location,
-				UserType = UserType.Company
-			};
+                Email = model.EmailAddress,
+                UserName = model.UserName,
+                Name = model.Name,
+                PhoneNumber = model.phoneNumber,
+                IsApprove = IsApprove.pending,
+                TaxNumber = model.TaxNumber,
+                Location = model.Location,
+                UserType = UserType.Company
+            };
 
-			var Result = await _userManager.CreateAsync(User, model.Password);
+            var Result = await _userManager.CreateAsync(User, model.Password);
 
-			if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
+            if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
 
-            return Ok(new UserDTO()
-            {
-                Email = User.Email,
-                Name = User.UserName,
-                Token = await _tokenService.CreateTokenAsync(User, _userManager),
-                Id = User.Id,
-                UserType = User.UserType
-            }); 
+           await _userManager.AddToRoleAsync(User, Roles.Company);
+
+            
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(User);
+
+            var confirmationLink = Url.Action("ConfirmEmail", "Account", new { token, email = User.Email }, Request.Scheme);
+
+            if (confirmationLink is null) return BadRequest(new ApiResponse(400, "Error in sending confirmation email"));
+
+            await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
+
+            return Ok( new ApiResponse(200, $"Company Registered Successfully, Please check your email to confirm your account {User.Email}"));
         }
 
         #endregion
 
-		#region ApproveCompany
-		[HttpPost("ApproveCompany")]
-		public async Task<ActionResult> ApproveCompany(string id)
-		{
-			var user = await _userManager.FindByIdAsync(id);
-			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
-			if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
-			if(user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is already approved"));
-			if(user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is rejected"));
-			user.IsApprove = IsApprove.approved;
-			await _userManager.UpdateAsync(user);
-			return Ok();
-		}
-		#endregion
 
-		#region RejectCompany
-		[HttpPost("RejectCompany")]
-		public async Task<ActionResult> RejectCompany(string id)
-		{
-			var user = await _userManager.FindByIdAsync(id);
-			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
-			if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
-			if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is already rejected"));
-			if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is approved"));
-			user.IsApprove = IsApprove.rejected;
-			await _userManager.UpdateAsync(user);
-			return Ok();
-		}
-		#endregion
+        #region RegisterCustomer
 
-		#region RegisterCustomer
-
-		[HttpPost("RegisterCustomer")]
-		public async Task<ActionResult<UserDTO>> RegisterCustomer(RegisterCustomerInput model)
+        [HttpPost("RegisterCustomer")]
+        public async Task<ActionResult<ApiResponse>> RegisterCustomer(RegisterCustomerInput model)
         {
-			if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
-			if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
+            if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
+            if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
 
-			var User = new Customer
+            var User = new Customer
             {
-				Email = model.EmailAddress,
-				UserName = model.UserName,
-				Name = model.Name,
-				PhoneNumber = model.PhoneNumber,
-				IsApprove = IsApprove.pending,
-				NationalID = model.NationalId,
-				//BirthDate = model.BirthDate,
-				UserType = UserType.Customer
-			};
+                Email = model.EmailAddress,
+                UserName = model.UserName,
+                Name = model.Name,
+                PhoneNumber = model.PhoneNumber,
+                IsApprove = IsApprove.approved,
+                NationalID = model.NationalId,
+                BirthDate = DateOnly.Parse(model.BirthDate),
+                UserType = UserType.Customer
+            };
 
-			var Result = await _userManager.CreateAsync(User, model.Password);
+            var Result = await _userManager.CreateAsync(User, model.Password);
 
-			if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
+            if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
 
-            return Ok(new UserDTO()
-            {
-                Email = User.Email,
-                Name = User.UserName,
-                Token = await _tokenService.CreateTokenAsync(User, _userManager),
-                Id = User.Id,
-                UserType = User.UserType
-            });
+            await _userManager.AddToRoleAsync(User, Roles.Customer);
+
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(User);
+
+            var confirmationLink = Url.Action("ConfirmEmail", "Account", new { token, email = User.Email }, Request.Scheme);
+
+            if (confirmationLink is null) return BadRequest(new ApiResponse(400, "Error in sending confirmation email"));
+
+            await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
+
+            return Ok(new ApiResponse(200, $"Customer Registered Successfully, Please check your email to confirm your account {User.Email}"));
         }
 
-		#endregion
+        #endregion
 
-		#region ApproveCustomer
-		[HttpPost("ApproveCustomer")]
-		public async Task<ActionResult> ApproveCustomer(string id)
-		{
-			var user = await _userManager.FindByIdAsync(id);
-			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
-			if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a customer"));
-			if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is already approved"));
-			if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is rejected"));
-			user.IsApprove = IsApprove.approved;
-			await _userManager.UpdateAsync(user);
-			return Ok();
-		}
-		#endregion
-
-		#region RejectCustomer
-		[HttpPost("RejectCustomer")]
-		public async Task<ActionResult> RejectCustomer(string id)
-		{
-			//check iff the current user is admin
-			//if(User.FindFirst(ClaimTypes.NameIdentifier)?.Value != "admin") return Unauthorized(new ApiResponse(401, "Unauthorized")); 
-			var user = await _userManager.FindByIdAsync(id);
-			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
-			if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a customer"));
-			if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is already rejected"));
-			if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is approved"));
-			user.IsApprove = IsApprove.rejected;
-			await _userManager.UpdateAsync(user);
-			return Ok();
-		}
-		#endregion
-
-		#region Logout
-		[HttpPost("Logout")]
-		public async Task<ActionResult> Logout()
-		{
-			await _signInManager.SignOutAsync();
-			return Ok();
-		}
-		#endregion
+        #region Logout
+        [HttpPost("Logout")]
+        public async Task<ActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok();
+        }
+        #endregion
 
 
+        #region resend confirmation Email
+        [HttpPost("ResendConfirmationEmail")]
 
-	
+        public async Task<ActionResult> ResendConfirmationEmail(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return BadRequest(new ApiResponse(404, "User not found"));
+            }
+
+            if (user.EmailConfirmed)
+            {
+                return BadRequest(new ApiResponse(400, "Email is already confirmed"));
+            }
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = Url.Action("ConfirmEmail", "Account", new { token, email = user.Email }, Request.Scheme);
+            await _emailService.SendConfirmationEmail(user.Email, confirmationLink);
+
+            return Ok(new { Message = $"Confirmation email sent to your email  {user.Email}" });
+        }
+
+
+        #endregion
+
+        #region Confirm Email
+        [HttpGet("ConfirmEmail")]
+        public async Task<IActionResult> ConfirmEmail(string token, string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return BadRequest(new ApiResponse(404, "User not found"));
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            if (!result.Succeeded)
+            {
+                return BadRequest(new ApiResponse(400, "Error confirming email"));
+            }
+
+            return Ok(new { Message = "Email confirmed successfully." });
+        }
+        #endregion
+
         #region Reset Password
 
         [HttpPost("ForgotPassword")]
@@ -225,7 +217,7 @@ namespace InsurTech.APIs.Controllers
             return Ok(new { Message = "Password reset email sent." });
         }
         [HttpGet("ResetPassword")]
-        public async Task<IActionResult> ResetPassword(string token  , string email)
+        public async Task<IActionResult> ResetPassword(string token, string email)
         {
             return Ok(new
             {

@@ -56,5 +56,12 @@ namespace InsurTech.Service
             var message = resetUrl;
             await SendEmailAsync(toEmail, subject, message);
         }
+
+        public async Task SendConfirmationEmail(string toEmail, string confirmationUrl)
+        {
+            var subject = "Confirm your email";
+            var message = $"<h1>Welcome to InsurTech</h1><p>Please confirm your email by <a href='{confirmationUrl}'>clicking here</a></p>";
+            await SendEmailAsync(toEmail, subject, message);
+        }
     }
 }
