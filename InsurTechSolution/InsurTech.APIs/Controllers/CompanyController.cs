@@ -86,8 +86,10 @@ namespace InsurTech.APIs.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllCompanies()
         {
+            //get all companies where isDeleted is false
             var users = await _userManager.GetUsersInRoleAsync("Company");
-            var companies = _mapper.Map<List<CompanyByIdOutputDto>>(users);
+            var notDeleted = users.Where(c => c.IsDeleted == false).ToList();
+            var companies = _mapper.Map<List<CompanyByIdOutputDto>>(notDeleted);
             return Ok(companies);
         }
         #endregion
@@ -111,5 +113,18 @@ namespace InsurTech.APIs.Controllers
         }
         #endregion
 
-    }
+        #region Delete Company
+        [HttpDelete("{id}")]
+		public async Task<IActionResult> DeleteCompany(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
+			if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
+			user.IsDeleted = true;
+			await _userManager.UpdateAsync(user);
+			return Ok();
+		}
+		#endregion  
+
+	}
 }

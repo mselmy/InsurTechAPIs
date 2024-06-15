@@ -19,6 +19,7 @@ namespace InsurTech.Core.Entities.Identity
     {
         public UserType UserType { get; set; }
         public IsApprove IsApprove { get; set; } = IsApprove.pending;
+        public bool IsDeleted { get; set; } = false;
         public string Name { get; set; }
         public const int MaxPlainPasswordLength = 128;
         public const int MaxEmailAddressLength = 120;
