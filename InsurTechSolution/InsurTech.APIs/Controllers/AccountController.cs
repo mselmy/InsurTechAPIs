@@ -1,7 +1,7 @@
 ﻿using InsurTech.APIs.DTOs;
 using InsurTech.APIs.DTOs.Company;
 using InsurTech.APIs.DTOs.Customer;
-﻿using Azure;
+using Azure;
 using InsurTech.APIs.Errors;
 using InsurTech.Core.Entities.Identity;
 using InsurTech.Core.Service;
@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Google.Apis.Auth;
 using Microsoft.Identity.Client.AppConfig;
+using InsurTech.Core;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -33,7 +34,7 @@ namespace InsurTech.APIs.Controllers
             _tokenService = tokenService;
             _emailService = emailService;
         }
-        
+
         #region Login
 
         [HttpPost("Login")]
@@ -45,9 +46,9 @@ namespace InsurTech.APIs.Controllers
             var Result = await _signInManager.CheckPasswordSignInAsync(User, model.Password, false);
 
             if (!Result.Succeeded) return Unauthorized(new ApiResponse(401));
-            if (!(User.IsApprove==IsApprove.approved)) return Unauthorized(new ApiResponse(401));
+            if (!(User.IsApprove == IsApprove.approved)) return Unauthorized(new ApiResponse(401));
 
-            
+
             return Ok(new UserDTO()
             {
                 Email = User.Email,
@@ -62,28 +63,30 @@ namespace InsurTech.APIs.Controllers
         #region RegisterCompany
 
         [HttpPost("RegisterCompany")]
-		public async Task<ActionResult<UserDTO>> RegisterCompany(RegisterCompanyInput model)
+        public async Task<ActionResult<UserDTO>> RegisterCompany(RegisterCompanyInput model)
         {
-			if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
-			if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
+            if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
+            if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
 
-			var User = new Company
+            var User = new Company
             {
-				Email = model.EmailAddress,
-				UserName = model.UserName,
-				Name = model.Name,
-				PhoneNumber = model.phoneNumber,
-				IsApprove = IsApprove.pending,
-				TaxNumber = model.TaxNumber,
-				Location = model.Location,
-				UserType = UserType.Company
-			};
+                Email = model.EmailAddress,
+                UserName = model.UserName,
+                Name = model.Name,
+                PhoneNumber = model.phoneNumber,
+                IsApprove = IsApprove.pending,
+                TaxNumber = model.TaxNumber,
+                Location = model.Location,
+                UserType = UserType.Company
+            };
 
-			var Result = await _userManager.CreateAsync(User, model.Password);
+            var Result = await _userManager.CreateAsync(User, model.Password);
 
-			if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
+            if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
 
+           await _userManager.AddToRoleAsync(User, Roles.Company);
 
+            
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(User);
 
             var confirmationLink = Url.Action("ConfirmEmail", "Account", new { token, email = User.Email }, Request.Scheme);
@@ -94,71 +97,72 @@ namespace InsurTech.APIs.Controllers
 
 
 
-			return Ok(
-                    
+            return Ok(
+
                 new
                 {
                     Message = $"Company Registered Successfully, Please check your email to confirm your account {User.Email}",
                 }
                 );
-		}
+        }
 
         #endregion
 
-		#region ApproveCompany
-		[HttpPost("ApproveCompany")]
-		public async Task<ActionResult> ApproveCompany(string id)
-		{
-			var user = await _userManager.FindByIdAsync(id);
-			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
-			if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
-			if(user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is already approved"));
-			if(user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is rejected"));
-			user.IsApprove = IsApprove.approved;
-			await _userManager.UpdateAsync(user);
-			return Ok();
-		}
-		#endregion
-
-		#region RejectCompany
-		[HttpPost("RejectCompany")]
-		public async Task<ActionResult> RejectCompany(string id)
-		{
-			var user = await _userManager.FindByIdAsync(id);
-			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
-			if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
-			if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is already rejected"));
-			if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is approved"));
-			user.IsApprove = IsApprove.rejected;
-			await _userManager.UpdateAsync(user);
-			return Ok();
-		}
-		#endregion
-
-		#region RegisterCustomer
-
-		[HttpPost("RegisterCustomer")]
-		public async Task<ActionResult<UserDTO>> RegisterCustomer(RegisterCustomerInput model)
+        #region ApproveCompany
+        [HttpPost("ApproveCompany")]
+        public async Task<ActionResult> ApproveCompany(string id)
         {
-			if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
-			if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
+            var user = await _userManager.FindByIdAsync(id);
+            if (user is null) return NotFound(new ApiResponse(404, "User not found"));
+            if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
+            if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is already approved"));
+            if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is rejected"));
+            user.IsApprove = IsApprove.approved;
+            await _userManager.UpdateAsync(user);
+            return Ok();
+        }
+        #endregion
 
-			var User = new Customer
+        #region RejectCompany
+        [HttpPost("RejectCompany")]
+        public async Task<ActionResult> RejectCompany(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user is null) return NotFound(new ApiResponse(404, "User not found"));
+            if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
+            if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is already rejected"));
+            if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is approved"));
+            user.IsApprove = IsApprove.rejected;
+            await _userManager.UpdateAsync(user);
+            return Ok();
+        }
+        #endregion
+
+        #region RegisterCustomer
+
+        [HttpPost("RegisterCustomer")]
+        public async Task<ActionResult<UserDTO>> RegisterCustomer(RegisterCustomerInput model)
+        {
+            if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
+            if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
+
+            var User = new Customer
             {
-				Email = model.EmailAddress,
-				UserName = model.UserName,
-				Name = model.Name,
-				PhoneNumber = model.PhoneNumber,
-				IsApprove = IsApprove.pending,
-				NationalID = model.NationalId,
-				//BirthDate = model.BirthDate,
-				UserType = UserType.Customer
-			};
+                Email = model.EmailAddress,
+                UserName = model.UserName,
+                Name = model.Name,
+                PhoneNumber = model.PhoneNumber,
+                IsApprove = IsApprove.approved,
+                NationalID = model.NationalId,
+                BirthDate = DateOnly.Parse(model.BirthDate),
+                UserType = UserType.Customer
+            };
 
-			var Result = await _userManager.CreateAsync(User, model.Password);
+            var Result = await _userManager.CreateAsync(User, model.Password);
 
-			if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
+            if (!Result.Succeeded) return BadRequest(new ApiResponse(400, "Error in creating user"));
 
+            await _userManager.AddToRoleAsync(User, Roles.Customer);
 
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(User);
@@ -180,47 +184,47 @@ namespace InsurTech.APIs.Controllers
                 );
         }
 
-		#endregion
+        #endregion
 
-		#region ApproveCustomer
-		[HttpPost("ApproveCustomer")]
-		public async Task<ActionResult> ApproveCustomer(string id)
-		{
-			var user = await _userManager.FindByIdAsync(id);
-			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
-			if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a customer"));
-			if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is already approved"));
-			if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is rejected"));
-			user.IsApprove = IsApprove.approved;
-			await _userManager.UpdateAsync(user);
-			return Ok();
-		}
-		#endregion
+        #region ApproveCustomer
+        [HttpPost("ApproveCustomer")]
+        public async Task<ActionResult> ApproveCustomer(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user is null) return NotFound(new ApiResponse(404, "User not found"));
+            if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a customer"));
+            if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is already approved"));
+            if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is rejected"));
+            user.IsApprove = IsApprove.approved;
+            await _userManager.UpdateAsync(user);
+            return Ok();
+        }
+        #endregion
 
-		#region RejectCustomer
-		[HttpPost("RejectCustomer")]
-		public async Task<ActionResult> RejectCustomer(string id)
-		{
-			//check iff the current user is admin
-			//if(User.FindFirst(ClaimTypes.NameIdentifier)?.Value != "admin") return Unauthorized(new ApiResponse(401, "Unauthorized")); 
-			var user = await _userManager.FindByIdAsync(id);
-			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
-			if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a customer"));
-			if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is already rejected"));
-			if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is approved"));
-			user.IsApprove = IsApprove.rejected;
-			await _userManager.UpdateAsync(user);
-			return Ok();
-		}
-		#endregion
+        #region RejectCustomer
+        [HttpPost("RejectCustomer")]
+        public async Task<ActionResult> RejectCustomer(string id)
+        {
+            //check iff the current user is admin
+            //if(User.FindFirst(ClaimTypes.NameIdentifier)?.Value != "admin") return Unauthorized(new ApiResponse(401, "Unauthorized")); 
+            var user = await _userManager.FindByIdAsync(id);
+            if (user is null) return NotFound(new ApiResponse(404, "User not found"));
+            if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a customer"));
+            if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is already rejected"));
+            if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is approved"));
+            user.IsApprove = IsApprove.rejected;
+            await _userManager.UpdateAsync(user);
+            return Ok();
+        }
+        #endregion
 
-		#region Logout
-		[HttpPost("Logout")]
-		public async Task<ActionResult> Logout()
-		{
-			await _signInManager.SignOutAsync();
-			return Ok();
-		}
+        #region Logout
+        [HttpPost("Logout")]
+        public async Task<ActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok();
+        }
         #endregion
 
 
@@ -247,7 +251,7 @@ namespace InsurTech.APIs.Controllers
             return Ok(new { Message = $"Confirmation email sent to your email  {user.Email}" });
         }
 
-           
+
         #endregion
 
         #region Confirm Email
@@ -288,7 +292,7 @@ namespace InsurTech.APIs.Controllers
             return Ok(new { Message = "Password reset email sent." });
         }
         [HttpGet("ResetPassword")]
-        public async Task<IActionResult> ResetPassword(string token  , string email)
+        public async Task<IActionResult> ResetPassword(string token, string email)
         {
             return Ok(new
             {
@@ -351,14 +355,14 @@ namespace InsurTech.APIs.Controllers
             if (user == null)
             {
                 var userNameNew = email.Split('@')[0];
-                
 
-                 user = new Customer
+
+                user = new Customer
                 {
-                     UserName = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
-                     Email = email,
-                     PhoneNumber = "01556675022",
-                     IsApprove = IsApprove.approved,
+                    UserName = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
+                    Email = email,
+                    PhoneNumber = "01556675022",
+                    IsApprove = IsApprove.approved,
                     NationalID = "11111111111111",
                     //BirthDate = model.BirthDate,
                     UserType = UserType.Customer

@@ -22,13 +22,12 @@ namespace InsurTech.Core.Entities.Identity
         public string Name { get; set; }
         public const int MaxPlainPasswordLength = 128;
         public const int MaxEmailAddressLength = 120;
-        public const int MaxNameLength = 50;
+        public const int MaxNameLength = 20;
         public const int MaxPhoneNumberLength = 11;
 
 	}
     public class Company : AppUser
     {
-        public IsApprove IsApprove { get; set; }
         public string TaxNumber { get; set; }
         public string Location { get; set; }
         public virtual ICollection<InsurancePlan> InsurancePlans { get; set; } = new List<InsurancePlan>();
