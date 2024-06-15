@@ -53,8 +53,10 @@ namespace InsurTech.APIs.Controllers
             {
                 Email = User.Email,
                 Name = User.UserName,
-                Token = await _tokenService.CreateTokenAsync(User, _userManager)
-            }); ;
+                Token = await _tokenService.CreateTokenAsync(User, _userManager),
+                Id=User.Id,
+                UserType=User.UserType
+            }); 
 
         }
 
@@ -92,6 +94,7 @@ namespace InsurTech.APIs.Controllers
             var confirmationLink = Url.Action("ConfirmEmail", "Account", new { token, email = User.Email }, Request.Scheme);
 
             if (confirmationLink is null) return BadRequest(new ApiResponse(400, "Error in sending confirmation email"));
+        
 
             await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
 
@@ -228,7 +231,7 @@ namespace InsurTech.APIs.Controllers
         #endregion
 
 
-        #region resend confirmation Emai
+        #region resend confirmation Email
         [HttpPost("ResendConfirmationEmail")]
 
         public async Task<ActionResult> ResendConfirmationEmail(string email)
@@ -273,6 +276,7 @@ namespace InsurTech.APIs.Controllers
             return Ok(new { Message = "Email confirmed successfully." });
         }
         #endregion
+
 
         #region Reset Password
 
@@ -376,7 +380,9 @@ namespace InsurTech.APIs.Controllers
             {
                 Email = user.Email,
                 Name = user.UserName,
-                Token = await _tokenService.CreateTokenAsync(user, _userManager)
+                Token = await _tokenService.CreateTokenAsync(user, _userManager),
+                Id=user.Id,
+                UserType=user.UserType
             };
 
             return Ok(userDto);
@@ -409,8 +415,16 @@ namespace InsurTech.APIs.Controllers
                 await _userManager.AddLoginAsync(user, info);
             }
 
-            var jwtToken = await _tokenService.CreateTokenAsync(user, _userManager);
-            return Ok(new { Token = jwtToken });
+            var userDto = new UserDTO
+            {
+                Email = user.Email,
+                Name = user.UserName,
+                Token = await _tokenService.CreateTokenAsync(user, _userManager),
+                Id = user.Id,
+                UserType = user.UserType
+            };
+
+            return Ok(userDto);
         }
 
         #endregion
