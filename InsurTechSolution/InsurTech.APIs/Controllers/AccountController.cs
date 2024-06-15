@@ -65,7 +65,7 @@ namespace InsurTech.APIs.Controllers
         #region RegisterCompany
 
         [HttpPost("RegisterCompany")]
-        public async Task<ActionResult<UserDTO>> RegisterCompany(RegisterCompanyInput model)
+        public async Task<ActionResult<ApiResponse>> RegisterCompany(RegisterCompanyInput model)
         {
             if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
             if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
@@ -97,15 +97,7 @@ namespace InsurTech.APIs.Controllers
 
             await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
 
-
-
-            return Ok(
-
-                new
-                {
-                    Message = $"Company Registered Successfully, Please check your email to confirm your account {User.Email}",
-                }
-                );
+            return Ok( new ApiResponse(200, $"Company Registered Successfully, Please check your email to confirm your account {User.Email}"));
         }
 
         #endregion
@@ -114,7 +106,7 @@ namespace InsurTech.APIs.Controllers
         #region RegisterCustomer
 
         [HttpPost("RegisterCustomer")]
-        public async Task<ActionResult<UserDTO>> RegisterCustomer(RegisterCustomerInput model)
+        public async Task<ActionResult<ApiResponse>> RegisterCustomer(RegisterCustomerInput model)
         {
             if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
             if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
@@ -146,15 +138,7 @@ namespace InsurTech.APIs.Controllers
 
             await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
 
-
-
-            return Ok(
-
-                new
-                {
-                    Message = $"Customer Registered Successfully, Please check your email to confirm your account {User.Email}",
-                }
-                );
+            return Ok(new ApiResponse(200, $"Customer Registered Successfully, Please check your email to confirm your account {User.Email}"));
         }
 
         #endregion
