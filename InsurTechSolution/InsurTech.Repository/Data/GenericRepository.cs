@@ -43,5 +43,10 @@ namespace InsurTech.Repository
             _db.Set<T>().Remove(entity);
         }
 
+        public async Task AddListAsync(List<T> entity)
+        {
+			 _db.Set<T>().AddRangeAsync(entity);
+		}
+
     }
 }

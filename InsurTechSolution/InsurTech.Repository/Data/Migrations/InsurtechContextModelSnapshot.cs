@@ -185,6 +185,9 @@ namespace InsurTech.Repository.Data.Migrations
                     b.Property<int>("IsApprove")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -254,18 +257,19 @@ namespace InsurTech.Repository.Data.Migrations
                         {
                             Id = "1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "7d153a61-62c7-4930-9205-d6ae96f3ddc4",
+                            ConcurrencyStamp = "cf7befa0-00b2-4fcc-9967-ee55dc294434",
                             Email = "asmaa_ash@gmail.com",
                             EmailConfirmed = true,
                             IsApprove = 1,
+                            IsDeleted = false,
                             LockoutEnabled = false,
                             Name = "Asmaa Ashraf",
                             NormalizedEmail = "ASMAA_ASH@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHi/E+L4OXmOldtVi3OOB5rzMhSrtADJM6bRpOcv9hJfoaEMyVOm2ITFYJruYVRHoQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAED2Zjkb2/oe00r/SdpAkR43+JJrD+QqWNIPf544uIoeE73DiAmfAhxNYSMcUXFON7w==",
                             PhoneNumber = "01211236779",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "9128a16c-067e-4701-a37d-b312d384a5bd",
+                            SecurityStamp = "dc96a64d-7b43-4883-8cae-c2d473e0b7de",
                             TwoFactorEnabled = false,
                             UserName = "Admin",
                             UserType = 2

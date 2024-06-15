@@ -102,7 +102,6 @@ namespace InsurTech.APIs.Controllers
 
         #endregion
 
-
         #region RegisterCustomer
 
         [HttpPost("RegisterCustomer")]
@@ -151,7 +150,6 @@ namespace InsurTech.APIs.Controllers
             return Ok();
         }
         #endregion
-
 
         #region resend confirmation Email
         [HttpPost("ResendConfirmationEmail")]
