@@ -81,5 +81,35 @@ namespace InsurTech.APIs.Controllers
         }
         #endregion
 
+
+        #region Get All Companies
+        [HttpGet]
+        public async Task<IActionResult> GetAllCompanies()
+        {
+            var users = await _userManager.GetUsersInRoleAsync("Company");
+            var companies = _mapper.Map<List<CompanyByIdOutputDto>>(users);
+            return Ok(companies);
+        }
+        #endregion
+
+        #region Get All Companies by Status
+        [HttpGet("status/{status}")]
+
+        public async Task<IActionResult> GetAllCompaniesByStatus([FromRoute] string status)
+        {
+            var users = await _userManager.GetUsersInRoleAsync("Company");
+            var companies = _mapper.Map<List<CompanyByIdOutputDto>>(users);
+
+            if (!Enum.TryParse<IsApprove>(status.ToString(), true, out var isApprove))
+            {
+                return BadRequest(new ApiResponse(400, $"Invalid status, status must be one of {string.Join(", ", Enum.GetNames(typeof(IsApprove)))}"));
+            }
+
+            companies = companies.Where(c => c.IsApprove == isApprove).ToList();
+
+            return Ok(companies);
+        }
+        #endregion
+
     }
 }

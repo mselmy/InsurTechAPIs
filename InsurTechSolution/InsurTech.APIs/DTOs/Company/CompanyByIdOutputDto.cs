@@ -1,5 +1,6 @@
 ﻿using InsurTech.Core.Entities.Identity;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace InsurTech.APIs.DTOs.Company
 {
@@ -22,6 +23,10 @@ namespace InsurTech.APIs.DTOs.Company
         public int InsurancePlansCount { get; set; }
 
         public ICollection<string> Roles { get; set; }
+
+        public string Status { get=>IsApprove.ToString(); }
+        [JsonIgnore]
+        public IsApprove IsApprove { get; set; }
 
 
     }
