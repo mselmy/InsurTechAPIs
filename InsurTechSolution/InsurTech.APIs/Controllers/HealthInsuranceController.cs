@@ -1,6 +1,10 @@
-﻿using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
+﻿using AutoMapper;
 using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
 using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
+using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
+using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
+using InsurTech.APIs.DTOs.MotorInsurancePlanDTO;
+using InsurTech.APIs.Errors;
 using InsurTech.Core;
 using InsurTech.Core.Entities;
 using InsurTech.Core.Repositories;
@@ -15,10 +19,12 @@ namespace InsurTech.APIs.Controllers
     public class HealthInsuranceController : ControllerBase
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly IMapper _mapper;
 
-        public HealthInsuranceController(IUnitOfWork unitOfWork)
+        public HealthInsuranceController(IUnitOfWork unitOfWork , IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
         [HttpPost("AddHealthPlan")]
         public async Task<IActionResult> AddHealthPlan(CreateHealthInsuranceDTO healthInsuranceDTO)
@@ -162,7 +168,23 @@ namespace InsurTech.APIs.Controllers
             }
         }
 
-       
+        [HttpGet("GetHealthInsuranceByCompanyId/{id}")]
+        public async Task<IActionResult> GetHealthInsuranceByCompanyId(string id)
+        {
+            var healthInsurancePlans = await unitOfWork.Repository<HealthInsurancePlan>().GetAllAsync();
+            var filteredHealthPlans = healthInsurancePlans
+                .Where(plan => plan.AvailableInsurance && plan.CompanyId == id).ToList();
+            var healthInsuranceDtos = _mapper.Map<List<HealthInsuranceDTO>>(filteredHealthPlans);
+
+            if (healthInsuranceDtos.Count == 0)
+            {
+                return NotFound(new ApiResponse(404, "No Insurances Yet"));
+            }
+            return Ok(healthInsuranceDtos);
+        }
+
+
+
     }
 }
 

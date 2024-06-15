@@ -5,7 +5,9 @@ using InsurTech.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
-using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
+using AutoMapper;
+using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
+using InsurTech.APIs.Errors;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -14,9 +16,12 @@ namespace InsurTech.APIs.Controllers
     public class HomeInsuranceController : ControllerBase
     {
         private readonly IUnitOfWork unitOfWork;
-        public HomeInsuranceController(IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+
+        public HomeInsuranceController(IUnitOfWork unitOfWork , IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
         [HttpPost("AddHomePlan")]
         public async Task<IActionResult> AddHomePlan(CreateHomeInsuranceDTO HomeInsuranceDTO)
@@ -157,6 +162,21 @@ namespace InsurTech.APIs.Controllers
             {
                 return BadRequest("No Insurances Yet");
             }
+        }
+
+        [HttpGet("GetHomeInsuranceByCompanyId/{id}")]
+        public async Task<IActionResult> GetHomeInsuranceByCompanyId(string id)
+        {
+            var homeInsurancePlans = await unitOfWork.Repository<HomeInsurancePlan>().GetAllAsync();
+            var filteredHomePlans = homeInsurancePlans
+                .Where(plan => plan.AvailableInsurance && plan.CompanyId == id).ToList();
+            var homeInsuranceDtos = _mapper.Map<List<HomeInsuranceDTO>>(filteredHomePlans);
+
+            if (homeInsuranceDtos.Count == 0)
+            {
+                return NotFound(new ApiResponse(404, "No Insurances Yet"));
+            }
+            return Ok(homeInsuranceDtos);
         }
 
     }
