@@ -247,105 +247,70 @@ namespace InsurTech.APIs.Controllers
 
         #endregion
 
-        #region  Login By Google In Api
-
-        [HttpGet("LoginWithGoogle")]
-        public IActionResult LoginWithGoogle()
+        #region Login By Google
+        [HttpPost("GooglleLogin")]
+        public async Task<IActionResult> GoogleLogin(Emailobj mail)
         {
-            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse") };
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-        }
-
-        [HttpGet("GoogleResponse")]
-        public async Task<IActionResult> GoogleResponse()
-        {
-            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
-            if (!result.Succeeded)
+            try
             {
-                return BadRequest(new ApiResponse(400, "Google authentication failed"));
-            }
 
-            var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
-            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var userName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+                var user = await _userManager.FindByEmailAsync(mail.Email);
 
-            if (email == null)
-            {
-                return BadRequest(new ApiResponse(400, "Google authentication failed"));
-            }
-
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                var userNameNew = email.Split('@')[0];
-                
-
-                 user = new Customer
+                if (user == null)
                 {
-                     UserName = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
-                     Email = email,
-                     PhoneNumber = "01556675022",
-                     IsApprove = IsApprove.approved,
-                    NationalID = "11111111111111",
-                    //BirthDate = model.BirthDate,
-                    UserType = UserType.Customer
-                };
-                var resultt = await _userManager.CreateAsync(user, "Asmaa***12345");
-                if (!resultt.Succeeded) return BadRequest(resultt.Errors);
+                    var userNameNew = mail.Email.Split('@')[0];
+                    user = new Customer
+                    {
+                        Name = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
+                        UserName = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
+                        Email = mail.Email,
+                        PhoneNumber = "01556675022",
+                        IsApprove = IsApprove.approved,
+                        NationalID = "11111111111111",
+                        UserType = UserType.Customer,
 
-            }
+                    };
 
-            var userDto = new UserDTO
-            {
-                Email = user.Email,
-                Name = user.UserName,
-                Token = await _tokenService.CreateTokenAsync(user, _userManager),
-                Id=user.Id,
-                UserType=user.UserType
-            };
+                    var result = await _userManager.CreateAsync(user, "Asmaa***12345");
 
-            return Ok(userDto);
-        }
-        #endregion
+                    if (!result.Succeeded)
+                    {
+                        return BadRequest("Failed to create user.");
+                    }
 
-        #region Login By Google Front
+                }
 
-        [HttpPost("GoogleLogin")]
-        public async Task<IActionResult> GoogleLogin([FromBody] string token)
-        {
-            var payload = await GoogleJsonWebSignature.ValidateAsync(token);
-            var info = new UserLoginInfo("Google", payload.Subject, "Google");
-            var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                var tokenString = await _tokenService.CreateTokenAsync(user, _userManager);
 
-            if (user == null)
-            {
-                var userNameNew = payload.Email.Split('@')[0];
-                user = new Customer
+                var userDto = new UserDTO
                 {
-                    UserName = new string(userNameNew.Where(c => char.IsLetter(c)).ToArray()),
-                    Email = payload.Email,
-                    PhoneNumber = "01556675022",
-                    IsApprove = IsApprove.approved,
-                    NationalID = "11111111111111",
-                    //BirthDate = model.BirthDate,
-                    UserType = UserType.Customer
+                    Email = user.Email,
+                    Name = user.UserName,
+                    Token = tokenString,
+                    Id = user.Id,
+                    UserType = user.UserType
                 };
-                var resultt = await _userManager.CreateAsync(user, "Asmaa***12345");
-                await _userManager.AddLoginAsync(user, info);
+
+                return Ok(userDto);
             }
-
-            var userDto = new UserDTO
+            catch (InvalidJwtException ex)
             {
-                Email = user.Email,
-                Name = user.UserName,
-                Token = await _tokenService.CreateTokenAsync(user, _userManager),
-                Id = user.Id,
-                UserType = user.UserType
-            };
-
-            return Ok(userDto);
+                return BadRequest("Invalid token.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
-        #endregion
+
+
     }
+    public class Emailobj()
+    {
+        public string Email { get; set; }
+    }
+
+    #endregion
 }
+

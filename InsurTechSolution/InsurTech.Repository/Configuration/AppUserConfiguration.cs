@@ -21,6 +21,12 @@ namespace InsurTech.Repository.Configuration
             builder.HasIndex(a => a.Email).IsUnique();
             builder.UseTphMappingStrategy();
 
+            builder
+             .HasDiscriminator<string>("Discriminator").HasValue<AppUser>("AppUser")
+             .HasValue<Customer>("Customer")
+             .HasValue<Company>("Company");
+
+
 
 
             var hasher = new PasswordHasher<AppUser>();
