@@ -26,7 +26,7 @@ namespace InsurTech.APIs
 
             var builder = WebApplication.CreateBuilder(args);
 
-            
+
 
             // Add services to the container.
 
@@ -46,12 +46,25 @@ namespace InsurTech.APIs
 
             builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
             {
-                
+
             })
             .AddEntityFrameworkStores<InsurtechContext>()
             .AddDefaultTokenProviders();
 
+            #region CORS
+            var corsTxt = "";
 
+            builder.Services.AddCors(op =>
+            {
+                op.AddPolicy(corsTxt, builder =>
+                {
+                    builder
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+            #endregion
             #region Reset Password
             //Reset Password
             builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(10));
@@ -120,15 +133,17 @@ namespace InsurTech.APIs
             app.UseMiddleware<ExceptionMiddleWare>();
             if (app.Environment.IsDevelopment())
             {
-                
+
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-           
+
             app.UseStaticFiles();
             app.UseStatusCodePagesWithRedirects("/error/{0}");
 
             app.UseHttpsRedirection();
+
+            app.UseCors( corsTxt);
 
             app.UseAuthentication();
             app.UseAuthorization();
