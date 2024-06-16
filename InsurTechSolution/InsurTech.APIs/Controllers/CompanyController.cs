@@ -34,8 +34,8 @@ namespace InsurTech.APIs.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user is null) return NotFound(new ApiResponse(404, "User not found"));
             if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
-            if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is already approved"));
-            if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is rejected"));
+            //if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is already approved"));
+            //if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is rejected"));
             user.IsApprove = IsApprove.approved;
             await _userManager.UpdateAsync(user);
             return Ok();
@@ -49,8 +49,8 @@ namespace InsurTech.APIs.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user is null) return NotFound(new ApiResponse(404, "User not found"));
             if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
-            if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is already rejected"));
-            if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is approved"));
+            //if (user.IsApprove == IsApprove.rejected) return BadRequest(new ApiResponse(400, "User is already rejected"));
+            //if (user.IsApprove == IsApprove.approved) return BadRequest(new ApiResponse(400, "User is approved"));
             user.IsApprove = IsApprove.rejected;
             await _userManager.UpdateAsync(user);
             return Ok();
