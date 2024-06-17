@@ -10,8 +10,8 @@ namespace InsurTech.APIs.DTOs.HomeInsurancePlanDTO
         [Required]
         [Range(0, double.MaxValue, ErrorMessage = "Yearly Coverage must be a non-negative number.")]
         public decimal YearlyCoverage { get; set; }
-
         [Required]
+        [JsonConverter(typeof(InsurancePlanLevelConverter))]
         [CheckLevel]
         public InsurancePlanLevel Level { get; set; }
 

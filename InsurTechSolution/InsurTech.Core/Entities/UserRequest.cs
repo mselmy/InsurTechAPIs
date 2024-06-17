@@ -7,6 +7,13 @@ using System.Threading.Tasks;
 
 namespace InsurTech.Core.Entities
 {
+    public enum RequestStatus
+    {
+        Pending,
+        Approved,
+        Rejected
+    }
+
     public class UserRequest : BaseEntity
     {
         public string CustomerId { get; set; }
@@ -14,5 +21,6 @@ namespace InsurTech.Core.Entities
         public int InsurancePlanId { get; set; }
         public virtual InsurancePlan InsurancePlan { get; set; }
         public virtual ICollection<RequestQuestion> RequestQuestions { get; set; } = new List<RequestQuestion>();
+        public RequestStatus Status { get; set; }
     }
 }

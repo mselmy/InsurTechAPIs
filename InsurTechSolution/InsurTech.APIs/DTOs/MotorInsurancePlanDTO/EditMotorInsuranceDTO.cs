@@ -15,6 +15,7 @@ namespace InsurTech.APIs.DTOs.MotorInsurancePlanDTO
         public decimal YearlyCoverage { get; set; }
 
         [Required]
+        [JsonConverter(typeof(InsurancePlanLevelConverter))]
         [CheckLevel]
         public InsurancePlanLevel Level { get; set; }
 
