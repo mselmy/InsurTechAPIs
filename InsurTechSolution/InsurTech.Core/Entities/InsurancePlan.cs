@@ -1,8 +1,10 @@
 ﻿using InsurTech.Core.Entities.Identity;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace InsurTech.Core.Entities
@@ -14,6 +16,7 @@ namespace InsurTech.Core.Entities
     public class InsurancePlan : BaseEntity
     {
         public decimal YearlyCoverage { get; set; }
+        
         public InsurancePlanLevel Level { get; set; }
         public int CategoryId { get; set; }
         public virtual Category Category { get; set; }

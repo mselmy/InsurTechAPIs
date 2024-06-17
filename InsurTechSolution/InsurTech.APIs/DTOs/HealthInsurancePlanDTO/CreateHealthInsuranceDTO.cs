@@ -13,7 +13,9 @@ namespace InsurTech.APIs.DTOs.HealthInsurancePlanDTO
         public decimal YearlyCoverage { get; set; }
 
         [Required]
+        [JsonConverter(typeof(InsurancePlanLevelConverter))]
         [CheckLevel]
+
         public InsurancePlanLevel Level { get; set; }
 
         [JsonIgnore]
