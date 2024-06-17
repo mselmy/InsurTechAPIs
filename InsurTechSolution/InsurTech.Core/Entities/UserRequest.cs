@@ -21,6 +21,6 @@ namespace InsurTech.Core.Entities
         public int InsurancePlanId { get; set; }
         public virtual InsurancePlan InsurancePlan { get; set; }
         public virtual ICollection<RequestQuestion> RequestQuestions { get; set; } = new List<RequestQuestion>();
-        public RequestStatus Status { get; set; }
+        public RequestStatus Status { get; set; } = RequestStatus.Pending;
     }
 }
