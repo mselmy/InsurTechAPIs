@@ -214,6 +214,26 @@ namespace InsurTech.APIs.Controllers
 
             return Ok(new { Message = "Password reset email sent." });
         }
+        [HttpPost("ForgotPasswordAngular")]
+        public async Task<IActionResult> ForgotPasswordAngular(ForgotPasswordDTO model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                return BadRequest(new ApiResponse(404, "User not found"));
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            string angularPort = "4200";
+            string componentRoute = "/reset-password";
+            string angularBaseUrl = $"http://localhost:{angularPort}";
+
+            string resetLink = $"{angularBaseUrl}{componentRoute}?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+            await _emailService.SendPasswordResetEmail(model.Email, resetLink);
+
+            return Ok(new { Message = "Password reset email sent." });
+        }
+
         [HttpGet("ResetPassword")]
         public async Task<IActionResult> ResetPassword(string token, string email)
         {
