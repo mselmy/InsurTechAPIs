@@ -8,6 +8,7 @@ using InsurTech.Core.Entities.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -26,8 +27,23 @@ namespace InsurTech.APIs.Controllers
 
         #region GetQusetionsByCategory
         [HttpGet("GetQusetionsByCategory/{id}")]
+        //[Authorize]
+        //[Authorize(Roles = Roles.Customer)]
+        //[Authorize(Roles = Roles.Admin)]
+
         public async Task<ActionResult> GetQusetionsByCategory([FromRoute] int id)
         {
+            //var username = User.FindFirst(ClaimTypes.GivenName)?.Value;
+            //Console.WriteLine($"username: \n{username}");
+            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //Console.WriteLine($"userId: \n{userId}");
+
+            //var email = User.FindFirstValue(ClaimTypes.Email);
+            //Console.WriteLine($"email: \n{email}");
+
+            //var userType = User.FindFirstValue(ClaimTypes.UserData);
+            //Console.WriteLine($"userType: \n{userType}");
+
             var questions = await _unitOfWork.Repository<Question>().GetAllAsync();
             var CategoryQuestions = questions.Where(q => q.CategoryId == id).ToList();
             var questionsDto = _mapper.Map<List<QuestionsDTO>>(CategoryQuestions);

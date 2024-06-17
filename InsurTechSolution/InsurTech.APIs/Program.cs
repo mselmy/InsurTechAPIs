@@ -15,6 +15,8 @@ using InsurTech.Core.Service;
 using InsurTech.Service;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace InsurTech.APIs
 {
@@ -33,9 +35,31 @@ namespace InsurTech.APIs
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(c =>
+            builder.Services.AddSwaggerGen(op =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "InsurTech API", Version = "v1" });
+                op.SwaggerDoc("v1", new OpenApiInfo { Title = "InsurTech API", Version = "v1" });
+
+                op.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme.",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer"
+                });
+
+                op.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] { }
+                    }
+                });
             });
 
             builder.Services.AddDbContext<InsurtechContext>(options =>
@@ -49,6 +73,7 @@ namespace InsurTech.APIs
 
             })
             .AddEntityFrameworkStores<InsurtechContext>()
+            //.AddApiEndpoints()
             .AddDefaultTokenProviders();
 
             #region CORS
@@ -72,7 +97,27 @@ namespace InsurTech.APIs
 
             #region Login By Gooogle + JWT
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer()
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(
+                    options =>
+                    {
+                        options.SaveToken = true;
+                        options.RequireHttpsMetadata = false;
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = false,
+                            ValidateAudience = false,
+                            //ValidIssuer = builder.Configuration["JWT:Issuer"],
+                            //ValidAudience = builder.Configuration["JWT:Audience"],
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                        };
+                    }
+                )
                             .AddGoogle(option =>
                             {
                                 option.ClientId = "30498991812-uog175jdj3vb9foj41sv9g2l88teu11n.apps.googleusercontent.com";
@@ -80,6 +125,8 @@ namespace InsurTech.APIs
                             });
 
             #endregion
+
+            builder.Services.AddAuthorization();
 
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -143,11 +190,12 @@ namespace InsurTech.APIs
 
             app.UseHttpsRedirection();
 
-            app.UseCors( corsTxt);
+            app.UseCors(corsTxt);
 
             app.UseAuthentication();
             app.UseAuthorization();
 
+            //app.MapIdentityApi<AppUser>();
 
             app.MapControllers();
 
