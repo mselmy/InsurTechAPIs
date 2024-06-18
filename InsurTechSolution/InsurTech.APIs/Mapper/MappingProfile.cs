@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using InsurTech.APIs.DTOs.Category;
 using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
 using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
 using InsurTech.APIs.DTOs.MotorInsurancePlanDTO;
@@ -24,6 +25,8 @@ namespace InsurTech.APIs.Mapper
                 .ForMember(dest => dest.NumberOfUsers, opt => opt.MapFrom(src => src.Requests.Count()))
                 .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Company.UserName ?? "no company"))
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
+
+            CreateMap<Category, CategoryDTO>();
         }
     }
 }
