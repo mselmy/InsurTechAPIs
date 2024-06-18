@@ -9,6 +9,7 @@ namespace InsurTech.APIs.DTOs.ArticleDTOs
         {
             CreateMap<CreateArticleInput, Article>();
             CreateMap<Article, ArticleDto>().ReverseMap();
+            CreateMap<CreateArticleWithImageInput, Article>();
         }
 
     }

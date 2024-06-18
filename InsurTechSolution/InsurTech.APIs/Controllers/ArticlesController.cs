@@ -74,7 +74,7 @@ namespace InsurTech.APIs.Controllers
 
             return Ok(articleDto);
         }
-    
+
         [HttpPut("{id}")]
         [Authorize(Roles = Roles.Admin)]
 
@@ -98,7 +98,6 @@ namespace InsurTech.APIs.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = Roles.Admin)]
-
         public async Task<IActionResult> DeleteArticle(int id)
         {
             var article = await _unitOfWork.Repository<Article>().GetByIdAsync(id);
@@ -115,5 +114,82 @@ namespace InsurTech.APIs.Controllers
             return Ok(new ApiResponse(200, "Article deleted successfully"));
         }
 
+        [HttpPost("upload-article")]
+        [Authorize(Roles = Roles.Admin)]
+        public async Task<IActionResult> UploadArticle([FromForm] CreateArticleWithImageInput articleInput)
+        {
+            if (articleInput.File == null || articleInput.File.Length == 0)
+            {
+                return BadRequest("No file uploaded");
+            }
+
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(articleInput.File.FileName); 
+            
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "UploadedFiles");
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            var filePath = Path.Combine(path, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await articleInput.File.CopyToAsync(stream);
+            }
+
+           
+            var article = _mapper.Map<Article>(articleInput);
+            
+            article.ArticleImg = fileName;
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            article.UserId = userId;
+
+            article.Date = DateOnly.FromDateTime(DateTime.Now);
+
+            await _unitOfWork.Repository<Article>().AddAsync(article);
+
+            await _unitOfWork.CompleteAsync();
+
+            var articleDto = _mapper.Map<ArticleDto>(article);
+
+            return Ok(articleDto);
+        }
+
+
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
+        {
+            if (file == null)
+            {
+                return BadRequest("No file uploaded");
+            }
+
+            if (file.Length == 0)
+            {
+                return BadRequest("Empty file uploaded");
+            }
+
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "UploadedFiles");
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            var filePath = Path.Combine(path, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return Ok(new { path = $"UploadedFiles/{fileName}" });
+        }
     }
 }
