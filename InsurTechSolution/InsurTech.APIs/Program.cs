@@ -91,6 +91,7 @@ namespace InsurTech.APIs
                 });
             });
             #endregion
+
             #region Reset Password
             //Reset Password
             builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(10));
@@ -156,18 +157,7 @@ namespace InsurTech.APIs
 
             #endregion
 
-            #region Login by Google in Api
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowMyOrigin",
-                    builder => builder
-                        .WithOrigins()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
-            });
-
-            #endregion
-
+            
             #region Mapper
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             #endregion
@@ -176,7 +166,7 @@ namespace InsurTech.APIs
             //======================================================
 
             var app = builder.Build();
-            app.UseCors("AllowMyOrigin");
+            
             // Configure the HTTP request pipeline.
             app.UseMiddleware<ExceptionMiddleWare>();
             if (app.Environment.IsDevelopment())
