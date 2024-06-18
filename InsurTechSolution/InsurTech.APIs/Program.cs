@@ -17,6 +17,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.Extensions.FileProviders;
 
 namespace InsurTech.APIs
 {
@@ -185,7 +186,13 @@ namespace InsurTech.APIs
                 app.UseSwaggerUI();
             }
 
-            app.UseStaticFiles();
+            app.UseStaticFiles(
+                    options: new StaticFileOptions
+                    {
+                        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "UploadedFiles")),
+                        RequestPath = ""
+                    });
+
             app.UseStatusCodePagesWithRedirects("/error/{0}");
 
             app.UseHttpsRedirection();
