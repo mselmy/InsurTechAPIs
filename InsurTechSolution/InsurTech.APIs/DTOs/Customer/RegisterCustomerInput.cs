@@ -9,8 +9,6 @@ namespace InsurTech.APIs.DTOs.Customer
 {
 	public class RegisterCustomerInput
 	{
-		[JsonIgnore]
-		public string Id { get; set; }
 		[Required]
 		[StringLength(AppUser.MaxNameLength)]
 		public string Name { get; set; }

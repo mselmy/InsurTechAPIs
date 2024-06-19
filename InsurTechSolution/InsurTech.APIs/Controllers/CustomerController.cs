@@ -218,7 +218,7 @@ namespace InsurTech.APIs.Controllers
         }
 
 		#endregion
-		/*
+		
 		#region CreateCustomer
 		[HttpPost("CreateCustomer")]
         public async Task<ActionResult> CreateCustomer(RegisterCustomerInput model)
@@ -248,36 +248,33 @@ namespace InsurTech.APIs.Controllers
 			return Ok(new ApiResponse(200, "Customer Registered Successfully"));
 		}
 		#endregion
-
+        
 		#region UpdateCustomer
 		[HttpPut("UpdateCustomer")]
-		public async Task<ActionResult> UpdateCustomer(RegisterCustomerInput model)
+		public async Task<ActionResult> UpdateCustomer(UpdateCustomerDTO model)
         {
-			var existingCustomer = await _userManager.FindByIdAsync(model.Id);
+			dynamic existingCustomer = await _userManager.FindByIdAsync(model.Id);
 			if (existingCustomer == null)
 			{
 				return BadRequest(new ApiResponse(400, "Customer Not Found"));
 			}
-			if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
+			if (await _userManager.FindByEmailAsync(model.Email) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
 
 			if (await _userManager.FindByNameAsync(model.UserName) != null) return BadRequest(new ApiResponse(400, "UserName is already taken"));
-            
-            existingCustomer.Email = model.EmailAddress;
+
+            existingCustomer.Email = model.Email;
             existingCustomer.UserName = model.UserName;
             existingCustomer.Name = model.Name;
             existingCustomer.PhoneNumber = model.PhoneNumber;
-           // existingCustomer.NationalID = model.NationalId;
-           // existingCustomer.BirthDate = DateOnly.Parse(model.BirthDate);
+            existingCustomer.NationalID = model.NationalId;
+            existingCustomer.BirthDate = DateOnly.Parse(model.BirthDate);   
 
 
-
-			await _userManager.UpdateAsync(existingCustomer);
-
-			await _unitOfWork.CompleteAsync();
-
-			return Ok(new ApiResponse(200, "Customer Updated Successfully"));
+            await _userManager.UpdateAsync(existingCustomer);
+            return Ok(new ApiResponse(200, "Customer Updated Successfully"));
 		}
-        #endregion
+		#endregion
+		
 
         #region DeleteCustomer
         [HttpDelete("DeleteCustomer/{customerId}")]
@@ -290,6 +287,6 @@ namespace InsurTech.APIs.Controllers
 			await _userManager.UpdateAsync(user);
 			return Ok();
 		}
-		#endregion*/
+		#endregion
 	}
 }
