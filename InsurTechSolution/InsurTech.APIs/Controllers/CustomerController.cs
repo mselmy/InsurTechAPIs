@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Castle.Core.Resource;
+using InsurTech.APIs.DTOs;
 using InsurTech.APIs.DTOs.Customer;
 using InsurTech.APIs.DTOs.Question;
 using InsurTech.APIs.DTOs.RequestDTO;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace InsurTech.APIs.Controllers
@@ -200,8 +202,19 @@ namespace InsurTech.APIs.Controllers
         }
         #endregion
 
-     #region GetCustomerById
-        [HttpGet("GetCustomerById/{customerId}")]
+        #region GetCustomersWithPagination
+        [HttpGet("GetCustomersWithPagination")]
+        public async Task<ActionResult> GetCustomersWithPagination([FromQuery] PaginationDTO pagination)
+        {
+			var customers = await _userManager.Users.Where(u => u.UserType == UserType.Customer).Skip((pagination.Page - 1) * pagination.ItemsPerPage).Take(pagination.ItemsPerPage).ToListAsync();
+            if(customers.Count == 0) return NotFound(new ApiResponse(404, "No Customers Found"));
+			var customersDto = _mapper.Map<List<GetCustomerDTO>>(customers);
+			return Ok(customersDto);
+		}
+		#endregion
+
+		#region GetCustomerById
+		[HttpGet("GetCustomerById/{customerId}")]
         public async Task<ActionResult> GetCustomerById([FromRoute] string customerId)
         {
             var user = await _userManager.FindByIdAsync(customerId);
