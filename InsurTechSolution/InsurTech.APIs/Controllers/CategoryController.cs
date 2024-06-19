@@ -27,6 +27,7 @@ namespace InsurTech.APIs.Controllers
             {
                 var categories = await _unitOfWork.Repository<Category>().GetAllAsync();
                 var categoryDtos = _mapper.Map<IEnumerable<CategoryDTO>>(categories);
+                
                 return Ok(categoryDtos);
             }
             catch (Exception ex)
