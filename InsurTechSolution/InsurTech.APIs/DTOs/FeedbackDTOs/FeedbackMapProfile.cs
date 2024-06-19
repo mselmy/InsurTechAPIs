@@ -1,12 +1,20 @@
 ﻿using AutoMapper;
-using InsurTech.APIs.DTOs.FeedbackDTOs;
 using InsurTech.Core.Entities;
+using InsurTech.APIs.DTOs.FeedbackDTOs;
 
-public class FeedbackMapProfile : Profile
+namespace InsurTech.APIs.MappingProfiles
 {
-    public FeedbackMapProfile()
+    public class FeedbackMapProfile : Profile
     {
-        CreateMap<Feedback, FeedbackDto>().ReverseMap();
-        CreateMap<CreateFeedbackInput, Feedback>().ReverseMap();
+        public FeedbackMapProfile()
+        {
+            // Map from Feedback entity to FeedbackDto
+            CreateMap<Feedback, FeedbackDto>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Name))
+                .ForMember(dest => dest.InsurancePlanName, opt => opt.MapFrom(src => src.InsurancePlan.Level.ToString()));
+
+            // Map from CreateFeedbackInput to Feedback entity
+            CreateMap<CreateFeedbackInput, Feedback>();
+        }
     }
 }
