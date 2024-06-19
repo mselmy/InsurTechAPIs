@@ -21,7 +21,11 @@ namespace InsurTech.Core.Entities.Identity
         public IsApprove IsApprove { get; set; } = IsApprove.pending;
         public bool IsDeleted { get; set; } = false;
         public string Name { get; set; }
-        public const int MaxPlainPasswordLength = 128;
+/*		public string? NationalID { get; set; }
+		public DateOnly? BirthDate { get; set; }*/
+
+
+		public const int MaxPlainPasswordLength = 128;
         public const int MaxEmailAddressLength = 120;
         public const int MaxNameLength = 20;
         public const int MaxPhoneNumberLength = 11;
