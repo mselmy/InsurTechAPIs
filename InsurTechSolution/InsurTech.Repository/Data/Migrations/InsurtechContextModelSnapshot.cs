@@ -147,12 +147,17 @@ namespace InsurTech.Repository.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("InsurancePlanId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("InsurancePlanId");
 
                     b.ToTable("Feedbacks");
                 });
@@ -257,7 +262,7 @@ namespace InsurTech.Repository.Data.Migrations
                         {
                             Id = "1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "8324d19e-4160-402a-a273-cb90454927aa",
+                            ConcurrencyStamp = "5366c00e-68ac-40a7-999d-6000b1e340e3",
                             Email = "asmaa_ash@gmail.com",
                             EmailConfirmed = true,
                             IsApprove = 1,
@@ -266,10 +271,10 @@ namespace InsurTech.Repository.Data.Migrations
                             Name = "Asmaa Ashraf",
                             NormalizedEmail = "ASMAA_ASH@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEC/72deuZeyFDEpD1zidHaD2yy5FU1DQSPNefls5l5RGmNKH5+Lu24OVbRU2yfDMtw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIuODIp9Np9wmvIUhI50lgm8/fNSDbhongpExK9IkOnUlgv2fPLfUyhR+fWEmCtTuA==",
                             PhoneNumber = "01211236779",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "2139de8f-9665-4ed2-9a26-950172903dfc",
+                            SecurityStamp = "91e41cda-e331-4026-8ac6-e848ae6c9ba1",
                             TwoFactorEnabled = false,
                             UserName = "Admin",
                             UserType = 2
@@ -697,10 +702,18 @@ namespace InsurTech.Repository.Data.Migrations
                     b.HasOne("InsurTech.Core.Entities.Identity.Customer", "Customer")
                         .WithMany("Feedbacks")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InsurTech.Core.Entities.InsurancePlan", "InsurancePlan")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("InsurancePlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Customer");
+
+                    b.Navigation("InsurancePlan");
                 });
 
             modelBuilder.Entity("InsurTech.Core.Entities.InsurancePlan", b =>
@@ -714,7 +727,7 @@ namespace InsurTech.Repository.Data.Migrations
                     b.HasOne("InsurTech.Core.Entities.Identity.Company", "Company")
                         .WithMany("InsurancePlans")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -869,6 +882,8 @@ namespace InsurTech.Repository.Data.Migrations
 
             modelBuilder.Entity("InsurTech.Core.Entities.InsurancePlan", b =>
                 {
+                    b.Navigation("Feedbacks");
+
                     b.Navigation("Requests");
                 });
 
