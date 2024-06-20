@@ -257,7 +257,7 @@ namespace InsurTech.Repository.Data.Migrations
                         {
                             Id = "1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "8324d19e-4160-402a-a273-cb90454927aa",
+                            ConcurrencyStamp = "12eba7e0-33ce-4101-9c75-983a9221af15",
                             Email = "asmaa_ash@gmail.com",
                             EmailConfirmed = true,
                             IsApprove = 1,
@@ -266,10 +266,10 @@ namespace InsurTech.Repository.Data.Migrations
                             Name = "Asmaa Ashraf",
                             NormalizedEmail = "ASMAA_ASH@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEC/72deuZeyFDEpD1zidHaD2yy5FU1DQSPNefls5l5RGmNKH5+Lu24OVbRU2yfDMtw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDO92CCHD+yaewcECcfixeZ0BE9UvgAXqCxKtlNPURfp4/3jskKCbcKpm1KBxNmWaQ==",
                             PhoneNumber = "01211236779",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "2139de8f-9665-4ed2-9a26-950172903dfc",
+                            SecurityStamp = "91c74ba0-27da-407f-a39f-3f0a4df48132",
                             TwoFactorEnabled = false,
                             UserName = "Admin",
                             UserType = 2
@@ -325,6 +325,9 @@ namespace InsurTech.Repository.Data.Migrations
                     b.Property<string>("Body")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
 
                     b.Property<string>("UserId")
                         .IsRequired()
