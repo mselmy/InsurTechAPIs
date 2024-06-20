@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Swashbuckle.AspNetCore;
+using Microsoft.EntityFrameworkCore;
+using InsurTech.Core.Entities.Identity;
+using Microsoft.AspNetCore.Identity;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -19,11 +22,13 @@ namespace InsurTech.APIs.Controllers
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly UserManager<AppUser> _userManager;
 
-        public ArticlesController(IUnitOfWork unitOfWork, IMapper mapper)
+        public ArticlesController(IUnitOfWork unitOfWork, IMapper mapper,UserManager<AppUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
 
@@ -71,6 +76,29 @@ namespace InsurTech.APIs.Controllers
             await _unitOfWork.CompleteAsync();
 
             var articleDto = _mapper.Map<ArticleDto>(article);
+
+
+            // Create and send notifications
+
+            // Fetch all approved customers
+            var approvedCustomers = await _userManager.Users
+                                       .Where(u => u.UserType == UserType.Customer && u.IsApprove == IsApprove.approved)
+                                       .ToListAsync();
+
+            foreach (var customer in approvedCustomers)
+            {
+                var notification = new Notification
+                {
+                    Body = $"A new article titled '{article.Title}' has been published by the admin.",
+                    UserId = customer.Id,
+                    IsRead = false
+                };
+
+                await _unitOfWork.Repository<Notification>().AddAsync(notification);
+            }
+
+            await _unitOfWork.CompleteAsync();
+
 
             return Ok(articleDto);
         }

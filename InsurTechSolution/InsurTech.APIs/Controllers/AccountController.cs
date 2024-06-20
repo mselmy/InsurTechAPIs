@@ -15,6 +15,8 @@ using System.Security.Claims;
 using Google.Apis.Auth;
 using Microsoft.Identity.Client.AppConfig;
 using InsurTech.Core;
+using InsurTech.Core.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -26,13 +28,15 @@ namespace InsurTech.APIs.Controllers
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ITokenService _tokenService;
         private readonly IEmailService _emailService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,ITokenService tokenService, IEmailService emailService)
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,ITokenService tokenService, IEmailService emailService,IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
             _emailService = emailService;
+            _unitOfWork = unitOfWork;
         }
 
         #region Login
@@ -97,6 +101,17 @@ namespace InsurTech.APIs.Controllers
 
             await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
 
+            // Send notification to admin
+            var notification = new Notification
+            {
+                Body = $"A new company {User.Name} has registered and needs approval.",
+                UserId = "1" ,
+                IsRead = false
+            };
+            await _unitOfWork.Repository<Notification>().AddAsync(notification);
+            await _unitOfWork.CompleteAsync();
+
+
             return Ok( new ApiResponse(200, $"Company Registered Successfully, Please check your email to confirm your account {User.Email}"));
         }
 
@@ -136,6 +151,15 @@ namespace InsurTech.APIs.Controllers
             if (confirmationLink is null) return BadRequest(new ApiResponse(400, "Error in sending confirmation email"));
 
             await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
+
+            var notification = new Notification
+            {
+                Body = $"A new customer {User.Name} has registered.",
+                UserId = "1" ,
+                IsRead=false
+            };
+            await _unitOfWork.Repository<Notification>().AddAsync(notification);
+            await _unitOfWork.CompleteAsync();
 
             return Ok(new ApiResponse(200, $"Customer Registered Successfully, Please check your email to confirm your account {User.Email}"));
         }
@@ -225,7 +249,7 @@ namespace InsurTech.APIs.Controllers
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             string angularPort = "4200";
-            string componentRoute = "/reset-password";
+            string componentRoute = "/resetpassword";
             string angularBaseUrl = $"http://localhost:{angularPort}";
 
             string resetLink = $"{angularBaseUrl}{componentRoute}?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
@@ -266,6 +290,7 @@ namespace InsurTech.APIs.Controllers
 
 
         #endregion
+
 
         #region Login By Google
         [HttpPost("GooglleLogin")]

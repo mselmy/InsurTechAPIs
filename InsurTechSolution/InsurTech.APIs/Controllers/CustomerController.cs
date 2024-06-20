@@ -112,6 +112,26 @@ namespace InsurTech.APIs.Controllers
 
                 await _unitOfWork.CompleteAsync();
 
+                // Send notification to admin and company
+
+                var plan = await _unitOfWork.Repository<InsurancePlan>().GetByIdAsync(applyForInsurancePlanInput.InsurancePlanId);
+                var adminNotification = new Notification
+                {
+                    Body = $"A new insurance request has been created .",
+                    UserId = "1" 
+                };
+
+                var companyNotification = new Notification
+                {
+                    Body = $"A new insurance request has been created .",
+                    UserId = plan.CompanyId,
+                    IsRead = false
+                };
+
+                await _unitOfWork.Repository<Notification>().AddAsync(adminNotification);
+                await _unitOfWork.Repository<Notification>().AddAsync(companyNotification);
+                await _unitOfWork.CompleteAsync();
+
                 return BadRequest(new ApiResponse(400, ex.Message));
             }
         }

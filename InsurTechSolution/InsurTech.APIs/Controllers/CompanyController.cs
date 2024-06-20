@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using InsurTech.APIs.DTOs.Company;
 using InsurTech.APIs.Errors;
+using InsurTech.Core;
+using InsurTech.Core.Entities;
 using InsurTech.Core.Entities.Identity;
 using InsurTech.Core.Service;
 using Microsoft.AspNetCore.Http;
@@ -17,12 +19,14 @@ namespace InsurTech.APIs.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CompanyController(UserManager<AppUser> userManager, IEmailService emailService, IMapper mapper)
+        public CompanyController(UserManager<AppUser> userManager, IEmailService emailService, IMapper mapper,IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _emailService = emailService;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
 
@@ -124,7 +128,32 @@ namespace InsurTech.APIs.Controllers
 			await _userManager.UpdateAsync(user);
 			return Ok();
 		}
-		#endregion  
+        #endregion
 
-	}
+        #region get Company's Users
+        [HttpGet("Users/{id}")]
+        public async Task<IActionResult> GetCompanyUsers(int id)
+        {
+            IEnumerable<UserRequest> requestList = await _unitOfWork.Repository<UserRequest>().GetAllAsync();
+            List<UserRequest> result = requestList
+                .Where(r => r.InsurancePlan.CompanyId == $"{id}")
+                .ToList();
+
+            if (result.Count == 0)
+            {
+                return NotFound(new ApiResponse(404, "No requests yet"));
+            }
+
+            List<CompanyUsersDTO> users = result.Select(user => new CompanyUsersDTO
+            {
+                name = user.Customer?.Name,
+                email = user.Customer?.Email,
+                phone = user.Customer?.PhoneNumber
+            }).ToList();
+
+            return Ok(users);
+        }
+        #endregion
+
+    }
 }

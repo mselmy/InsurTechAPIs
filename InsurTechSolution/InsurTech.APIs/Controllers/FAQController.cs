@@ -2,9 +2,12 @@
 using InsurTech.APIs.DTOs.FAQDTOs;
 using InsurTech.Core;
 using InsurTech.Core.Entities;
+using InsurTech.Core.Entities.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace InsurTech.APIs.Controllers
@@ -15,11 +18,13 @@ namespace InsurTech.APIs.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly UserManager<AppUser> _userManager;
 
-        public FAQController(IUnitOfWork unitOfWork, IMapper mapper)
+        public FAQController(IUnitOfWork unitOfWork, IMapper mapper,UserManager<AppUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -59,6 +64,27 @@ namespace InsurTech.APIs.Controllers
             await _unitOfWork.CompleteAsync();
 
             var faqDto = _mapper.Map<FAQDTO>(faq);
+
+            // Create and send notifications
+
+            // Fetch all approved customers
+            var approvedCustomers = await _userManager.Users
+                                       .Where(u => u.UserType == UserType.Customer && u.IsApprove == IsApprove.approved)
+                                       .ToListAsync();
+
+            foreach (var customer in approvedCustomers)
+            {
+                var notification = new Notification
+                {
+                    Body = $"A new FAQ titled '{faq.Body}' has been added. Check it out!",
+                    UserId = customer.Id,
+                    IsRead = false
+                };
+
+                await _unitOfWork.Repository<Notification>().AddAsync(notification);
+            }
+
+            await _unitOfWork.CompleteAsync();
 
             return CreatedAtAction(nameof(GetFAQ), new { id = faq.Id }, faqDto);
         }
