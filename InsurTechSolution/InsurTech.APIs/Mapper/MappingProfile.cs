@@ -3,6 +3,7 @@ using InsurTech.APIs.DTOs.Category;
 using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
 using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
 using InsurTech.APIs.DTOs.MotorInsurancePlanDTO;
+using InsurTech.APIs.DTOs.NotificationDTO;
 using InsurTech.Core.Entities;
 
 namespace InsurTech.APIs.Mapper
@@ -29,6 +30,8 @@ namespace InsurTech.APIs.Mapper
             CreateMap<Category, CategoryDTO>()
                  .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.InsurancePlans.Count))
                  .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.QuestionPlans.Count));
+
+            CreateMap<Notification, GetNotificationDTO>();
         }
     }
 }
