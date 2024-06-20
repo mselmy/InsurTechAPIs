@@ -147,12 +147,17 @@ namespace InsurTech.Repository.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("InsurancePlanId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("InsurancePlanId");
 
                     b.ToTable("Feedbacks");
                 });
@@ -257,6 +262,7 @@ namespace InsurTech.Repository.Data.Migrations
                         {
                             Id = "1",
                             AccessFailedCount = 0,
+
                             ConcurrencyStamp = "12eba7e0-33ce-4101-9c75-983a9221af15",
                             Email = "asmaa_ash@gmail.com",
                             EmailConfirmed = true,
@@ -266,6 +272,7 @@ namespace InsurTech.Repository.Data.Migrations
                             Name = "Asmaa Ashraf",
                             NormalizedEmail = "ASMAA_ASH@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
+
                             PasswordHash = "AQAAAAIAAYagAAAAEDO92CCHD+yaewcECcfixeZ0BE9UvgAXqCxKtlNPURfp4/3jskKCbcKpm1KBxNmWaQ==",
                             PhoneNumber = "01211236779",
                             PhoneNumberConfirmed = false,
@@ -700,10 +707,18 @@ namespace InsurTech.Repository.Data.Migrations
                     b.HasOne("InsurTech.Core.Entities.Identity.Customer", "Customer")
                         .WithMany("Feedbacks")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InsurTech.Core.Entities.InsurancePlan", "InsurancePlan")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("InsurancePlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Customer");
+
+                    b.Navigation("InsurancePlan");
                 });
 
             modelBuilder.Entity("InsurTech.Core.Entities.InsurancePlan", b =>
@@ -717,7 +732,7 @@ namespace InsurTech.Repository.Data.Migrations
                     b.HasOne("InsurTech.Core.Entities.Identity.Company", "Company")
                         .WithMany("InsurancePlans")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -872,6 +887,8 @@ namespace InsurTech.Repository.Data.Migrations
 
             modelBuilder.Entity("InsurTech.Core.Entities.InsurancePlan", b =>
                 {
+                    b.Navigation("Feedbacks");
+
                     b.Navigation("Requests");
                 });
 
