@@ -46,6 +46,16 @@ namespace InsurTech.APIs.Controllers
 
                 await unitOfWork.Repository<HomeInsurancePlan>().AddAsync(HomeInsurancePlan);
                 await unitOfWork.CompleteAsync();
+
+                var notification = new Notification
+                {
+                    Body = $"A new Home insurance plan '{HomeInsurancePlan.Level}' has been added by company ID {HomeInsurancePlan.CompanyId}.",
+                    UserId = "1",
+                    IsRead = false
+                };
+                await unitOfWork.Repository<Notification>().AddAsync(notification);
+                await unitOfWork.CompleteAsync();
+
                 return Ok(HomeInsuranceDTO);
             }
             else
@@ -85,6 +95,15 @@ namespace InsurTech.APIs.Controllers
                 storedHomeInsurancePlan.FiresAndExplosion = HomeInsuranceDTO.FiresAndExplosion;
 
                 await unitOfWork.Repository<HomeInsurancePlan>().Update(storedHomeInsurancePlan);
+                await unitOfWork.CompleteAsync();
+
+                var notification = new Notification
+                {
+                    Body = $"The Home insurance plan '{storedHomeInsurancePlan.Level}' has been updated by company ID {storedHomeInsurancePlan.CompanyId}.",
+                    UserId = "1",
+                    IsRead = false
+                };
+                await unitOfWork.Repository<Notification>().AddAsync(notification);
                 await unitOfWork.CompleteAsync();
 
                 return Ok(HomeInsuranceDTO);

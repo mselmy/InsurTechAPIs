@@ -26,7 +26,9 @@ namespace InsurTech.APIs.Mapper
                 .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Company.UserName ?? "no company"))
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
 
-            CreateMap<Category, CategoryDTO>();
+            CreateMap<Category, CategoryDTO>()
+                 .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.InsurancePlans.Count))
+                 .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.QuestionPlans.Count));
         }
     }
 }
