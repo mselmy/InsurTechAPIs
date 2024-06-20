@@ -231,7 +231,31 @@ namespace InsurTech.APIs.Controllers
 			var customersDto = _mapper.Map<List<GetCustomerDTO>>(customers);
 			return Ok(customersDto);
 		}
+        #endregion
+
+        #region GetCustomerByEmail
+        [HttpGet("GetCustomerByEmail/{email}")]
+		public async Task<ActionResult> GetCustomerByEmail([FromRoute] string email)
+        {
+			var user = await _userManager.FindByEmailAsync(email);
+			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
+			if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a Customer"));
+			var customer = _mapper.Map<GetCustomerDTO>(user);
+			return Ok(customer);
+		}
 		#endregion
+
+		#region GetCustomerByUserName
+		[HttpGet("GetCustomerByUserName/{userName}")]
+        public async Task<ActionResult> GetCustomerByUserName([FromRoute] string userName)
+        {
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user is null) return NotFound(new ApiResponse(404, "User not found"));
+            if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a Customer"));
+            var customer = _mapper.Map<GetCustomerDTO>(user);
+            return Ok(customer);
+        }
+        #endregion
 
 		#region GetCustomerById
 		[HttpGet("GetCustomerById/{customerId}")]
