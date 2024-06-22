@@ -61,13 +61,14 @@ namespace InsurTech.APIs.Controllers
 
         #region Request Insurance Plan
         [HttpPost("requestInsurancePlan")]
+        //[Authorize]
         public async Task<ActionResult> RequestAnswersWithInsurancePlan(ApplyForInsurancePlanInput applyForInsurancePlanInput)
         {
             try
             {
-                var customerId = applyForInsurancePlanInput.CustomerId; //we could get current user id from token and remove this line + remove from ApplyForInsurancePlanInput + add [Authorize] attribute to the method
+                //var customerId = applyForInsurancePlanInput.CustomerId; //we could get current user id from token and remove this line + remove from ApplyForInsurancePlanInput + add [Authorize] attribute to the method
 
-                //var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 var insurancePlanId = applyForInsurancePlanInput.InsurancePlanId;
 
@@ -110,9 +111,9 @@ namespace InsurTech.APIs.Controllers
             }
             catch (Exception ex)
             {
-                await _unitOfWork.Repository<UserRequest>().Delete(new UserRequest { CustomerId = applyForInsurancePlanInput.CustomerId, InsurancePlanId = applyForInsurancePlanInput.InsurancePlanId });
+                //await _unitOfWork.Repository<UserRequest>().Delete(new UserRequest { CustomerId = CustomerId, InsurancePlanId = applyForInsurancePlanInput.InsurancePlanId });
 
-                await _unitOfWork.CompleteAsync();
+                //await _unitOfWork.CompleteAsync();
 
                 // Send notification to admin and company
 

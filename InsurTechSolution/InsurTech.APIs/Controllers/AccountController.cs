@@ -133,7 +133,8 @@ namespace InsurTech.APIs.Controllers
                 PhoneNumber = model.PhoneNumber,
                 IsApprove = IsApprove.approved,
                 NationalID = model.NationalId,
-                BirthDate = DateOnly.Parse(model.BirthDate),
+                BirthDate = DateOnly.Parse("1999-07-22"),
+                //BirthDate = new DateTime(),
                 UserType = UserType.Customer
             };
 

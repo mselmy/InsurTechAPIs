@@ -30,8 +30,8 @@ namespace InsurTech.APIs.DTOs.Customer
 
 		[Required]
 		//month should be less than 13 and day should be less than 32
-		[RegularExpression( @"^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", ErrorMessage = "Invalid Date")]
-		[CheckBirthDate]
+		//[RegularExpression( @"^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", ErrorMessage = "Invalid Date")]
+		//[CheckBirthDate]
 		public string BirthDate { get; set; }
 
 		[Required]
