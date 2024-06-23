@@ -28,7 +28,7 @@ namespace InsurTech.APIs.Controllers
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
-]        public CompanyController(UserManager<AppUser> userManager,IUnitOfWork unitOfWork, IEmailService emailService, IMapper mapper, IRequestService requestService)
+      public CompanyController(UserManager<AppUser> userManager,IUnitOfWork unitOfWork, IEmailService emailService, IMapper mapper, IRequestService requestService)
 
         {
             _userManager = userManager;
