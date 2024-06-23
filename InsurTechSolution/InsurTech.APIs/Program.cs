@@ -1,3 +1,4 @@
+using InsurTech.Core.Entities;
 using InsurTech.Core.Repositories;
 using InsurTech.Core;
 using InsurTech.Repository.Data;
@@ -16,7 +17,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using InsurTech.Core.Entities;
+using Microsoft.Extensions.FileProviders;
 
 namespace InsurTech.APIs
 {
@@ -78,46 +79,88 @@ namespace InsurTech.APIs
             });
             #endregion
 
+      
+            #region Authentication and JWT
             #region Reset Password
+            //Reset Password
             builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(10));
             #endregion
 
-            #region Authentication and JWT
-            builder.Services.AddAuthentication(options =>
+            #region Login By Gooogle + JWT
+
+]            builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
             })
-            .AddJwtBearer(options =>
-            {
-                options.SaveToken = true;
-                options.RequireHttpsMetadata = false;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
-                };
-            })
-            .AddGoogle(options =>
-            {
-                options.ClientId = "30498991812-uog175jdj3vb9foj41sv9g2l88teu11n.apps.googleusercontent.com";
-                options.ClientSecret = "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";
-            });
+                .AddJwtBearer(
+                    options =>
+                    {
+                        options.SaveToken = true;
+                        options.RequireHttpsMetadata = false;
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = false,
+                            ValidateAudience = false,
+                            //ValidIssuer = builder.Configuration["JWT:Issuer"],
+                            //ValidAudience = builder.Configuration["JWT:Audience"],
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                        };
+                    }
+                )
+                            .AddGoogle(option =>
+                            {
+                                option.ClientId = "30498991812-uog175jdj3vb9foj41sv9g2l88teu11n.apps.googleusercontent.com";
+                                option.ClientSecret = "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";
+                            });
+
             #endregion
 
             builder.Services.AddAuthorization();
 
+
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IRequestService, RequestService>();
 
-
             #region Validation Error Handling
-            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            builder.Services.Configure<ApiBehaviorOptions>(option =>
+            {
+                option.InvalidModelStateResponseFactory = (actionContext) =>
+                {
+                    var errors = actionContext.ModelState.Where(p => p.Value.Errors.Count() > 0)
+                                            .SelectMany(p => p.Value.Errors)
+                                            .Select(e => e.ErrorMessage)
+                                            .ToArray();
+                    var validationErrorResponse = new ApiValidationErrorResponse()
+                    {
+                        Errors = errors
+                    };
+                    return new BadRequestObjectResult(validationErrorResponse);
+                };
+            });
+
+            #endregion
+
+            
+            #region Mapper
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            #endregion
+
+            //======================================================
+            //======================================================
+
+            var app = builder.Build();
+            
+            // Configure the HTTP request pipeline.
+            app.UseMiddleware<ExceptionMiddleWare>();
+            if (app.Environment.IsDevelopment())
             {
                 options.InvalidModelStateResponseFactory = actionContext =>
                 {
@@ -148,10 +191,19 @@ namespace InsurTech.APIs
                 app.UseSwaggerUI();
             }
 
-            app.UseStaticFiles();
+
+            app.UseStaticFiles(
+                    options: new StaticFileOptions
+                    {
+                        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "UploadedFiles")),
+                        RequestPath = ""
+                    });
+
             app.UseStatusCodePagesWithRedirects("/error/{0}");
 
             app.UseHttpsRedirection();
+
+            app.UseCors(corsTxt);
 
             app.UseAuthentication();
             app.UseAuthorization();

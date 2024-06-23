@@ -23,18 +23,20 @@ namespace InsurTech.APIs.Controllers
     {
 
         private readonly UserManager<AppUser> _userManager;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IRequestService _requestService;
         private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CompanyController(UserManager<AppUser> userManager,IUnitOfWork unitOfWork,IGenericRepository<UserRequest> requests, IEmailService emailService, IMapper mapper, IRequestService requestService)
+]        public CompanyController(UserManager<AppUser> userManager,IUnitOfWork unitOfWork, IEmailService emailService, IMapper mapper, IRequestService requestService)
+
         {
             _userManager = userManager;
             _emailService = emailService;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _requestService = requestService;
+
         }
 
 
@@ -193,6 +195,30 @@ namespace InsurTech.APIs.Controllers
         }
         #endregion
 
+        #region get Company's Users
+        [HttpGet("Users/{id}")]
+        public async Task<IActionResult> GetCompanyUsers(int id)
+        {
+            IEnumerable<UserRequest> requestList = await _unitOfWork.Repository<UserRequest>().GetAllAsync();
+            List<UserRequest> result = requestList
+                .Where(r => r.InsurancePlan.CompanyId == $"{id}")
+                .ToList();
+
+            if (result.Count == 0)
+            {
+                return NotFound(new ApiResponse(404, "No requests yet"));
+            }
+
+            List<CompanyUsersDTO> users = result.Select(user => new CompanyUsersDTO
+            {
+                name = user.Customer?.Name,
+                email = user.Customer?.Email,
+                phone = user.Customer?.PhoneNumber
+            }).ToList();
+
+            return Ok(users);
+        }
+        #endregion
 
     }
 }

@@ -34,10 +34,6 @@ namespace InsurTech.Repository.Data
         {
             base.OnModelCreating(builder);
             builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-
-            builder.Entity<Customer>().HasMany(c => c.Feedbacks).WithOne(f => f.Customer).HasForeignKey(f => f.CustomerId);
-            builder.Entity<Company>().HasMany(c => c.InsurancePlans).WithOne(i => i.Company).HasForeignKey(i => i.CompanyId);
-
         }
     }
 }

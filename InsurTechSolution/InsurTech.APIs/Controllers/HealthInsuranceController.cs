@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
 using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
-using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
-using InsurTech.APIs.DTOs.HealthInsurancePlanDTO;
 using InsurTech.APIs.DTOs.HomeInsurancePlanDTO;
 using InsurTech.APIs.DTOs.MotorInsurancePlanDTO;
 using InsurTech.APIs.Errors;
@@ -49,6 +47,17 @@ namespace InsurTech.APIs.Controllers
 
                 await unitOfWork.Repository<HealthInsurancePlan>().AddAsync(healthInsurancePlan);
                 await unitOfWork.CompleteAsync();
+
+                var notification = new Notification
+                {
+                    Body = $"A new health insurance plan '{healthInsurancePlan.Level}' has been added by company ID {healthInsurancePlan.CompanyId}.",
+                    UserId = "1",
+                    IsRead = false
+                };
+                await unitOfWork.Repository<Notification>().AddAsync(notification);
+                await unitOfWork.CompleteAsync();
+
+
                 return Ok(healthInsuranceDTO);
             }
             else
@@ -88,6 +97,15 @@ namespace InsurTech.APIs.Controllers
                 
 
                 await unitOfWork.Repository<HealthInsurancePlan>().Update(storedHealthInsurancePlan);
+                await unitOfWork.CompleteAsync();
+
+                var notification = new Notification
+                {
+                    Body = $"The Health insurance plan '{storedHealthInsurancePlan.Level}' has been updated by company ID {storedHealthInsurancePlan.CompanyId}.",
+                    UserId = "1" ,
+                    IsRead = false
+                };
+                await unitOfWork.Repository<Notification>().AddAsync(notification);
                 await unitOfWork.CompleteAsync();
 
                 return Ok(HealthInsuranceDTO);

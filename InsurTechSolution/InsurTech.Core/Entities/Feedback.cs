@@ -17,6 +17,8 @@ namespace InsurTech.Core.Entities
         public string Comment { get; set; }
         public string CustomerId { get; set; }
         public virtual Customer Customer { get; set; }
-
+        public int InsurancePlanId { get; set; }
+        public virtual InsurancePlan InsurancePlan { get; set; }
     }
+
 }

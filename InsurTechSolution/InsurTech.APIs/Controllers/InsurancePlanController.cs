@@ -13,6 +13,8 @@ using InsurTech.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -42,6 +44,15 @@ namespace InsurTech.APIs.Controllers
 
                 plan.AvailableInsurance = false;
                 await _unitOfWork.Repository<InsurancePlan>().Update(plan);
+                await _unitOfWork.CompleteAsync();
+
+                var notification = new Notification
+                {
+                    Body = $"The insurance plan  with ID { plan.Id } has been deleted by company ID { plan.CompanyId }.",
+                    UserId = "1" ,
+                    IsRead = false
+                };
+                await _unitOfWork.Repository<Notification>().AddAsync(notification);
                 await _unitOfWork.CompleteAsync();
 
                 return Ok(new ApiResponse(200, "Deleted"));

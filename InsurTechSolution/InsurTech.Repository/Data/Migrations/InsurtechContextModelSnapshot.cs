@@ -147,12 +147,17 @@ namespace InsurTech.Repository.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("InsurancePlanId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("InsurancePlanId");
 
                     b.ToTable("Feedbacks");
                 });
@@ -257,7 +262,8 @@ namespace InsurTech.Repository.Data.Migrations
                         {
                             Id = "1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "8324d19e-4160-402a-a273-cb90454927aa",
+
+                            ConcurrencyStamp = "12eba7e0-33ce-4101-9c75-983a9221af15",
                             Email = "asmaa_ash@gmail.com",
                             EmailConfirmed = true,
                             IsApprove = 1,
@@ -266,10 +272,11 @@ namespace InsurTech.Repository.Data.Migrations
                             Name = "Asmaa Ashraf",
                             NormalizedEmail = "ASMAA_ASH@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEC/72deuZeyFDEpD1zidHaD2yy5FU1DQSPNefls5l5RGmNKH5+Lu24OVbRU2yfDMtw==",
+
+                            PasswordHash = "AQAAAAIAAYagAAAAEDO92CCHD+yaewcECcfixeZ0BE9UvgAXqCxKtlNPURfp4/3jskKCbcKpm1KBxNmWaQ==",
                             PhoneNumber = "01211236779",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "2139de8f-9665-4ed2-9a26-950172903dfc",
+                            SecurityStamp = "91c74ba0-27da-407f-a39f-3f0a4df48132",
                             TwoFactorEnabled = false,
                             UserName = "Admin",
                             UserType = 2
@@ -325,6 +332,9 @@ namespace InsurTech.Repository.Data.Migrations
                     b.Property<string>("Body")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -697,10 +707,18 @@ namespace InsurTech.Repository.Data.Migrations
                     b.HasOne("InsurTech.Core.Entities.Identity.Customer", "Customer")
                         .WithMany("Feedbacks")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InsurTech.Core.Entities.InsurancePlan", "InsurancePlan")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("InsurancePlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Customer");
+
+                    b.Navigation("InsurancePlan");
                 });
 
             modelBuilder.Entity("InsurTech.Core.Entities.InsurancePlan", b =>
@@ -714,7 +732,7 @@ namespace InsurTech.Repository.Data.Migrations
                     b.HasOne("InsurTech.Core.Entities.Identity.Company", "Company")
                         .WithMany("InsurancePlans")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -869,6 +887,8 @@ namespace InsurTech.Repository.Data.Migrations
 
             modelBuilder.Entity("InsurTech.Core.Entities.InsurancePlan", b =>
                 {
+                    b.Navigation("Feedbacks");
+
                     b.Navigation("Requests");
                 });
 

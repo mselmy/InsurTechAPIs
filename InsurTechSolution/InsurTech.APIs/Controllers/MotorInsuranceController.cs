@@ -4,11 +4,15 @@ using InsurTech.APIs.DTOs.MotorInsurancePlanDTO;
 using InsurTech.APIs.Errors;
 using InsurTech.Core;
 using InsurTech.Core.Entities;
+using InsurTech.Core.Entities.Identity;
 using InsurTech.Core.Repositories;
 using InsurTech.Repository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
+using System.Numerics;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -47,6 +51,17 @@ namespace InsurTech.APIs.Controllers
 
                 await _unitOfWork.Repository<MotorInsurancePlan>().AddAsync(motorInsurancePlan);
                 await _unitOfWork.CompleteAsync();
+
+                var notification = new Notification
+                {
+                    Body = $"A new Motor insurance plan '{motorInsurancePlan.Level}' has been added by company ID {motorInsurancePlan.CompanyId}.",
+                    UserId = "1" ,
+                    IsRead = false
+                };
+                await _unitOfWork.Repository<Notification>().AddAsync(notification);
+                await _unitOfWork.CompleteAsync();
+
+
                 return Ok(motorInsuranceDTO);
             }
             else
@@ -83,6 +98,14 @@ namespace InsurTech.APIs.Controllers
                 storedMotorInsurancePlan.LegalExpenses = motorInsuranceDTO.LegalExpenses;
 
                 await _unitOfWork.Repository<MotorInsurancePlan>().Update(storedMotorInsurancePlan);
+                await _unitOfWork.CompleteAsync();
+                var notification = new Notification
+                {
+                    Body = $"The Motor insurance plan '{storedMotorInsurancePlan.Level}' has been updated by company ID { storedMotorInsurancePlan.CompanyId }.",
+                    UserId = "1" ,
+                    IsRead = false
+                };
+                await _unitOfWork.Repository<Notification>().AddAsync(notification);
                 await _unitOfWork.CompleteAsync();
 
                 return Ok(motorInsuranceDTO);
