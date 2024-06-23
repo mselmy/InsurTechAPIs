@@ -30,9 +30,8 @@ namespace InsurTech.APIs.Controllers
         }
 
 
-
-        #region ApproveCompany
-        [HttpPost("ApproveCompany/{id}")]
+		#region ApproveCompany
+		[HttpPost("ApproveCompany/{id}")]
         public async Task<ActionResult> ApproveCompany([FromRoute] string id)
         {
             var user = await _userManager.FindByIdAsync(id);

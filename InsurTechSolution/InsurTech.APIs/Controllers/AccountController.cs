@@ -17,6 +17,8 @@ using Microsoft.Identity.Client.AppConfig;
 using InsurTech.Core;
 using InsurTech.Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using InsurTech.APIs.DTOs.UserDTOs;
 
 namespace InsurTech.APIs.Controllers
 {
@@ -29,14 +31,16 @@ namespace InsurTech.APIs.Controllers
         private readonly ITokenService _tokenService;
         private readonly IEmailService _emailService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,ITokenService tokenService, IEmailService emailService,IUnitOfWork unitOfWork)
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,ITokenService tokenService, IEmailService emailService,IUnitOfWork unitOfWork,IMapper mapper)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
             _emailService = emailService;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         #region Login
@@ -64,11 +68,33 @@ namespace InsurTech.APIs.Controllers
 
         }
 
-        #endregion
+		#endregion
 
-        #region RegisterCompany
+		#region GetUserByEmail
+		[HttpGet("GetUserByEmail/{email}")]
+		public async Task<ActionResult> GetUserByEmail([FromRoute] string email)
+		{
+			var user = await _userManager.FindByEmailAsync(email);
+			if (user is null) return NotFound("User not found");
+            var userDto= _mapper.Map<GetUserDTO>(user);
+            return Ok(userDto);
+		}
+		#endregion
 
-        [HttpPost("RegisterCompany")]
+		#region GetUserByUserName
+		[HttpGet("GetUserByUserName/{userName}")]
+		public async Task<ActionResult> GetUserByUserName([FromRoute] string userName)
+		{
+			var user = await _userManager.FindByNameAsync(userName);
+			if (user is null) return NotFound("User not found");
+            var userDto= _mapper.Map<GetUserDTO>(user);
+			return Ok(userDto);
+		}
+		#endregion
+
+		#region RegisterCompany
+
+		[HttpPost("RegisterCompany")]
         public async Task<ActionResult<ApiResponse>> RegisterCompany(RegisterCompanyInput model)
         {
             if (await _userManager.FindByEmailAsync(model.EmailAddress) != null) return BadRequest(new ApiResponse(400, "Email is already taken"));
@@ -99,10 +125,17 @@ namespace InsurTech.APIs.Controllers
 
             if (confirmationLink is null) return BadRequest(new ApiResponse(400, "Error in sending confirmation email"));
 
-            await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
+            try
+            {
+				await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
+			}catch(Exception ex)
+            {
+				return BadRequest(new ApiResponse(400, "Error in sending confirmation email"));
+			}
 
-            // Send notification to admin
-            var notification = new Notification
+
+			// Send notification to admin
+			var notification = new Notification
             {
                 Body = $"A new company {User.Name} has registered and needs approval.",
                 UserId = "1" ,
@@ -151,9 +184,14 @@ namespace InsurTech.APIs.Controllers
 
             if (confirmationLink is null) return BadRequest(new ApiResponse(400, "Error in sending confirmation email"));
 
-            await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
-
-            var notification = new Notification
+            try
+            {
+				await _emailService.SendConfirmationEmail(User.Email, confirmationLink);
+			}catch(Exception ex)
+            {
+				return BadRequest(new ApiResponse(400, "Error in sending confirmation email"));
+			}
+			var notification = new Notification
             {
                 Body = $"A new customer {User.Name} has registered.",
                 UserId = "1" ,
