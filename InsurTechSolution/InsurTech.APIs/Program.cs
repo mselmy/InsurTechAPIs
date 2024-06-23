@@ -1,4 +1,4 @@
-
+using InsurTech.Core.Entities;
 using InsurTech.Core.Repositories;
 using InsurTech.Core;
 using InsurTech.Repository.Data;
@@ -25,16 +25,10 @@ namespace InsurTech.APIs
     {
         public static void Main(string[] args)
         {
-
-
             var builder = WebApplication.CreateBuilder(args);
 
-
-
             // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(op =>
             {
@@ -66,32 +60,27 @@ namespace InsurTech.APIs
             builder.Services.AddDbContext<InsurtechContext>(options =>
             {
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-
             });
 
-            builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
-            {
-
-            })
-            .AddEntityFrameworkStores<InsurtechContext>()
-            //.AddApiEndpoints()
-            .AddDefaultTokenProviders();
+            builder.Services.AddIdentity<AppUser, IdentityRole>(options => { })
+                .AddEntityFrameworkStores<InsurtechContext>()
+                .AddDefaultTokenProviders();
 
             #region CORS
-            var corsTxt = "";
-
-            builder.Services.AddCors(op =>
+            builder.Services.AddCors(options =>
             {
-                op.AddPolicy(corsTxt, builder =>
+                options.AddPolicy("AllowSpecificOrigin", policyBuilder =>
                 {
-                    builder
-                        .AllowAnyOrigin()
+                    policyBuilder.WithOrigins("http://localhost:4200")
+                        .AllowAnyMethod()
                         .AllowAnyHeader()
-                        .AllowAnyMethod();
+                        .AllowCredentials();
                 });
             });
             #endregion
 
+      
+            #region Authentication and JWT
             #region Reset Password
             //Reset Password
             builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(10));
@@ -99,11 +88,12 @@ namespace InsurTech.APIs
 
             #region Login By Gooogle + JWT
 
-            builder.Services.AddAuthentication(options =>
+]            builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
             })
                 .AddJwtBearer(
                     options =>
@@ -137,6 +127,7 @@ namespace InsurTech.APIs
 
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IRequestService, RequestService>();
 
             #region Validation Error Handling
             builder.Services.Configure<ApiBehaviorOptions>(option =>
@@ -171,10 +162,35 @@ namespace InsurTech.APIs
             app.UseMiddleware<ExceptionMiddleWare>();
             if (app.Environment.IsDevelopment())
             {
+                options.InvalidModelStateResponseFactory = actionContext =>
+                {
+                    var errors = actionContext.ModelState.Where(p => p.Value.Errors.Count > 0)
+                                                         .SelectMany(p => p.Value.Errors)
+                                                         .Select(e => e.ErrorMessage)
+                                                         .ToArray();
+                    var validationErrorResponse = new ApiValidationErrorResponse { Errors = errors };
+                    return new BadRequestObjectResult(validationErrorResponse);
+                };
+            });
+            #endregion
 
+            #region Mapper
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            #endregion
+
+            var app = builder.Build();
+
+            // Configure CORS
+            app.UseCors("AllowSpecificOrigin");
+
+            // Configure the HTTP request pipeline.
+            app.UseMiddleware<ExceptionMiddleWare>();
+            if (app.Environment.IsDevelopment())
+            {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
 
             app.UseStaticFiles(
                     options: new StaticFileOptions
@@ -191,8 +207,6 @@ namespace InsurTech.APIs
 
             app.UseAuthentication();
             app.UseAuthorization();
-
-            //app.MapIdentityApi<AppUser>();
 
             app.MapControllers();
 
