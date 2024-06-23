@@ -64,7 +64,7 @@ namespace InsurTech.APIs.Controllers
 							healthInsuranceDtos.Add(healthInsuranceDto);
 						}
 						return Ok(healthInsuranceDtos);
-					case 3:
+					case 2:
                         List<HomeInsuranceDTO> homeInsuranceDtos = [];
                         foreach(var plan in filteredInsurancePlans)
                         {
@@ -84,7 +84,7 @@ namespace InsurTech.APIs.Controllers
                             homeInsuranceDtos.Add(homeInsuranceDto);
                         }
 						return Ok(homeInsuranceDtos);
-					case 2:
+					case 3:
                         List<MotorInsuranceDTO> motorInsuranceDtos = [];
 						foreach(var plan in filteredInsurancePlans)
                         {
