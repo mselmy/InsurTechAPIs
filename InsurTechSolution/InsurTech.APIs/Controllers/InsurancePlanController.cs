@@ -33,7 +33,91 @@ namespace InsurTech.APIs.Controllers
             _userManager = userManager;
         }
 
-        [HttpDelete("DeleteInsurancePlan/{id}")]
+        #region GetInsurancePlansByCategoryId
+        [HttpGet("GetInsurancePlansByCategoryId/{id}")]
+		public async Task<IActionResult> GetInsurancePlansByCategoryId(int id)
+        {
+			try
+            {
+                var insurancePlans = await _unitOfWork.Repository<InsurancePlan>().GetAllAsync();
+                dynamic filteredInsurancePlans = insurancePlans.Where(plan => plan.CategoryId == id && plan.AvailableInsurance == true).ToList();
+                switch(id)
+                {
+					case 1:
+                        List<HealthInsuranceDTO> healthInsuranceDtos = [];
+                        foreach(var plan in filteredInsurancePlans)
+                        {
+							var healthInsuranceDto = new HealthInsuranceDTO
+                            {
+								Id = plan.Id,
+								YearlyCoverage = plan.YearlyCoverage,
+								Level = plan.Level,
+								Category = plan.Category.Name,
+								Quotation = plan.Quotation,
+								Company = plan.Company.Name,
+								MedicalNetwork = plan.MedicalNetwork,
+								ClinicsCoverage = plan.ClinicsCoverage,
+								HospitalizationAndSurgery = plan.HospitalizationAndSurgery,
+								OpticalCoverage = plan.OpticalCoverage,
+								DentalCoverage = plan.DentalCoverage,
+							};
+							healthInsuranceDtos.Add(healthInsuranceDto);
+						}
+						return Ok(healthInsuranceDtos);
+					case 3:
+                        List<HomeInsuranceDTO> homeInsuranceDtos = [];
+                        foreach(var plan in filteredInsurancePlans)
+                        {
+                            var homeInsuranceDto = new HomeInsuranceDTO
+                            {	Id = plan.Id,
+								YearlyCoverage = plan.YearlyCoverage,
+								Level = plan.Level,
+								Category = plan.Category.Name,
+								Quotation = plan.Quotation,
+								Company = plan.Company.Name,
+								WaterDamage = plan.WaterDamage,
+								GlassBreakage = plan.GlassBreakage,
+								NaturalHazard = plan.NaturalHazard,
+								AttemptedTheft = plan.AttemptedTheft,
+								FiresAndExplosion = plan.FiresAndExplosion,
+							};
+                            homeInsuranceDtos.Add(homeInsuranceDto);
+                        }
+						return Ok(homeInsuranceDtos);
+					case 2:
+                        List<MotorInsuranceDTO> motorInsuranceDtos = [];
+						foreach(var plan in filteredInsurancePlans)
+                        {
+							var motorInsuranceDto = new MotorInsuranceDTO
+                            {
+								Id = plan.Id,
+								YearlyCoverage = plan.YearlyCoverage,
+								Level = plan.Level,
+								Category = plan.Category.Name,
+								Quotation = plan.Quotation,
+								Company = plan.Company.Name,
+								PersonalAccident = plan.PersonalAccident,
+								Theft = plan.Theft,
+								ThirdPartyLiability = plan.ThirdPartyLiability,
+								OwnDamage = plan.OwnDamage,
+								LegalExpenses = plan.LegalExpenses,
+							};
+							motorInsuranceDtos.Add(motorInsuranceDto);
+						}
+						return Ok(motorInsuranceDtos);
+					default:
+						return NotFound(new ApiResponse(404, "No insurance plans found for the specified category."));
+				}
+			}
+			catch (Exception)
+            {
+				return StatusCode(500, new ApiResponse(500, "An error occurred while retrieving insurance plans."));
+			}
+		}
+		#endregion
+
+
+		[HttpDelete("DeleteInsurancePlan/{id}")]
         public async Task<IActionResult> DeleteInsurancePlan(int id)
         {
             try
