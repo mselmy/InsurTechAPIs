@@ -92,6 +92,27 @@ namespace InsurTech.APIs.Controllers
 		}
 		#endregion
 
+		#region GetCustomerByNationalId
+		[HttpGet("GetCustomerByNationalId/{nationalId}")]
+        public async Task<ActionResult> GetCustomerByNationalId([FromRoute] string nationalId)
+        {
+			var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserType == UserType.Customer && x is Customer && (x as Customer).NationalID == nationalId);
+			if (user is null) return NotFound("User not found");
+			var userDto = _mapper.Map<GetUserDTO>(user);
+			return Ok(userDto);
+		}
+		#endregion
+		#region GetCompanyByTaxNumber
+		[HttpGet("GetCompanyByTaxNumber/{taxNumber}")]
+        public async Task<ActionResult> GetCompanyByTaxNumber([FromRoute] string taxNumber)
+        {
+            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserType == UserType.Company && x is Company && (x as Company).TaxNumber == taxNumber);
+            if (user is null) return NotFound("User not found");
+            var userDto = _mapper.Map<GetUserDTO>(user);
+            return Ok(userDto);
+        }
+        #endregion
+
 		#region RegisterCompany
 
 		[HttpPost("RegisterCompany")]
