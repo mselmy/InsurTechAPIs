@@ -115,7 +115,7 @@ namespace InsurTech.APIs.Controllers
                 return BadRequest(ModelState);
             }
         }
-        [HttpGet("GetMotorInsuranceById/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetMotorInsuranceById(int id)
         {
 

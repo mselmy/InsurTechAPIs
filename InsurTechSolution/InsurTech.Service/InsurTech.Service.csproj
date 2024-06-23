@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\InsurTech.Core\InsurTech.Core.csproj" />
+    <ProjectReference Include="..\InsurTech.Repository\InsurTech.Repository.csproj" />
   </ItemGroup>
 
 </Project>
