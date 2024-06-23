@@ -113,6 +113,17 @@ namespace InsurTech.APIs.Controllers
         }
         #endregion
 
+        #region GetAllUsers
+        [HttpGet("GetAllUsers")]
+        public async Task<ActionResult> GetAllUsers()
+        {
+			var users = await _userManager.Users.ToListAsync();
+			if (users is null) return NotFound("Users not found");
+			var userDto = _mapper.Map<List<GetUserDTO>>(users);
+			return Ok(userDto);
+		}
+        #endregion
+
 		#region RegisterCompany
 
 		[HttpPost("RegisterCompany")]
