@@ -119,8 +119,7 @@ namespace InsurTech.APIs.Controllers
         {
 			var users = await _userManager.Users.ToListAsync();
 			if (users is null) return NotFound("Users not found");
-			var userDto = _mapper.Map<List<GetUserDTO>>(users);
-			return Ok(userDto);
+			return Ok(users);
 		}
         #endregion
 
