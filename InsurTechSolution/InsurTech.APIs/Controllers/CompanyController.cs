@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using InsurTech.APIs.DTOs.Company;
 using InsurTech.APIs.DTOs.CompanyRequests;
+using InsurTech.APIs.DTOs.CompanyUpdateDto;
 using InsurTech.APIs.DTOs.RequestDTO;
 using InsurTech.APIs.Errors;
 using InsurTech.Core;
@@ -135,6 +136,29 @@ namespace InsurTech.APIs.Controllers
 			if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
 			user.IsDeleted = true;
 			await _userManager.UpdateAsync(user);
+			return Ok();
+		}
+        #endregion
+
+        #region Update Company
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCompany([FromRoute] string id, [FromBody] CompanyUpdateDto company)
+        {
+			if (id != company.Id)
+            {
+				return BadRequest("ID in the route does not match the ID in the request body");
+			}
+
+			var existingCompany = await _userManager.FindByIdAsync(id);
+			if (existingCompany == null)
+            {
+				return NotFound("Company not found");
+			}
+
+			_mapper.Map(company, existingCompany);
+
+			await _userManager.UpdateAsync(existingCompany);
+
 			return Ok();
 		}
         #endregion

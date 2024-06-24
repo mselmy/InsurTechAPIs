@@ -102,6 +102,7 @@ namespace InsurTech.APIs.Controllers
 			return Ok(userDto);
 		}
 		#endregion
+
 		#region GetCompanyByTaxNumber
 		[HttpGet("GetCompanyByTaxNumber/{taxNumber}")]
         public async Task<ActionResult> GetCompanyByTaxNumber([FromRoute] string taxNumber)
@@ -122,6 +123,34 @@ namespace InsurTech.APIs.Controllers
 			return Ok(users);
 		}
         #endregion
+
+        #region DeleteUser
+        [HttpDelete("DeleteUser/{id}")]
+        public async Task<ActionResult> DeleteUser([FromRoute] string id)
+        {
+			var user = await _userManager.FindByIdAsync(id);
+			if (user is null) return NotFound("User not found");
+			user.IsDeleted = true;
+			await _userManager.UpdateAsync(user);
+			return Ok();
+		}
+        #endregion
+
+ /*       #region UpdateUser
+        [HttpPut("UpdateUser")]
+        public async Task<ActionResult> UpdateUser(UpdateUserDTO model)
+        {
+            		var user = await _userManager.FindByIdAsync(model.Id);
+            if (user is null) return NotFound("User not found");
+            user = _mapper.Map(model, user);
+            await _userManager.UpdateAsync(user);
+            return Ok();
+
+        }
+
+        #endregion*/
+
+
 
 		#region RegisterCompany
 
