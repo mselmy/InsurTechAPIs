@@ -75,6 +75,7 @@ namespace InsurTech.APIs.Controllers
 		public async Task<ActionResult> GetUserByEmail([FromRoute] string email)
 		{
 			var user = await _userManager.FindByEmailAsync(email);
+			if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
 			if (user is null) return NotFound("User not found");
             var userDto= _mapper.Map<GetUserDTO>(user);
             return Ok(userDto);
@@ -87,7 +88,8 @@ namespace InsurTech.APIs.Controllers
 		{
 			var user = await _userManager.FindByNameAsync(userName);
 			if (user is null) return NotFound("User not found");
-            var userDto= _mapper.Map<GetUserDTO>(user);
+			if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
+			var userDto = _mapper.Map<GetUserDTO>(user);
 			return Ok(userDto);
 		}
 		#endregion
@@ -98,6 +100,7 @@ namespace InsurTech.APIs.Controllers
         {
 			var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserType == UserType.Customer && x is Customer && (x as Customer).NationalID == nationalId);
 			if (user is null) return NotFound("User not found");
+			if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
 			var userDto = _mapper.Map<GetUserDTO>(user);
 			return Ok(userDto);
 		}
@@ -109,7 +112,8 @@ namespace InsurTech.APIs.Controllers
         {
             var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserType == UserType.Company && x is Company && (x as Company).TaxNumber == taxNumber);
             if (user is null) return NotFound("User not found");
-            var userDto = _mapper.Map<GetUserDTO>(user);
+			if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
+			var userDto = _mapper.Map<GetUserDTO>(user);
             return Ok(userDto);
         }
         #endregion
@@ -119,6 +123,7 @@ namespace InsurTech.APIs.Controllers
         public async Task<ActionResult> GetAllUsers()
         {
 			var users = await _userManager.Users.ToListAsync();
+            users= users.Where(x => x.IsDeleted == false).ToList();
 			if (users is null) return NotFound("Users not found");
 			return Ok(users);
 		}
@@ -136,19 +141,7 @@ namespace InsurTech.APIs.Controllers
 		}
         #endregion
 
- /*       #region UpdateUser
-        [HttpPut("UpdateUser")]
-        public async Task<ActionResult> UpdateUser(UpdateUserDTO model)
-        {
-            		var user = await _userManager.FindByIdAsync(model.Id);
-            if (user is null) return NotFound("User not found");
-            user = _mapper.Map(model, user);
-            await _userManager.UpdateAsync(user);
-            return Ok();
 
-        }
-
-        #endregion*/
 
 
 

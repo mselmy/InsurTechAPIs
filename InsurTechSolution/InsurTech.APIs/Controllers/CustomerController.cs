@@ -227,7 +227,7 @@ namespace InsurTech.APIs.Controllers
         [HttpGet("GetCustomersWithPagination")]
         public async Task<ActionResult> GetCustomersWithPagination([FromQuery] PaginationDTO pagination)
         {
-			var customers = await _userManager.Users.Where(u => u.UserType == UserType.Customer).Skip((pagination.Page - 1) * pagination.ItemsPerPage).Take(pagination.ItemsPerPage).ToListAsync();
+			var customers = await _userManager.Users.Where(u => u.UserType == UserType.Customer && u.IsDeleted==false).Skip((pagination.Page - 1) * pagination.ItemsPerPage).Take(pagination.ItemsPerPage).ToListAsync();
             if(customers.Count == 0) return NotFound(new ApiResponse(404, "No Customers Found"));
 			var customersDto = _mapper.Map<List<GetCustomerDTO>>(customers);
 			return Ok(customersDto);
@@ -240,6 +240,7 @@ namespace InsurTech.APIs.Controllers
         {
 			var user = await _userManager.FindByEmailAsync(email);
 			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
+			if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
 			if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a Customer"));
 			var customer = _mapper.Map<GetCustomerDTO>(user);
 			return Ok(customer);
@@ -253,6 +254,7 @@ namespace InsurTech.APIs.Controllers
             var user = await _userManager.FindByNameAsync(userName);
             if (user is null) return NotFound(new ApiResponse(404, "User not found"));
             if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a Customer"));
+            if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
             var customer = _mapper.Map<GetCustomerDTO>(user);
             return Ok(customer);
         }
@@ -265,6 +267,8 @@ namespace InsurTech.APIs.Controllers
             var user = await _userManager.FindByIdAsync(customerId);
 
 			if (user is null) return NotFound(new ApiResponse(404, "User not found"));
+
+            if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
 
 			if (user.UserType != UserType.Customer) return BadRequest(new ApiResponse(400, "User is not a Customer"));
 
