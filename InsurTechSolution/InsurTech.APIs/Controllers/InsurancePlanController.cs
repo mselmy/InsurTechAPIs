@@ -51,7 +51,7 @@ namespace InsurTech.APIs.Controllers
                             {
 								Id = plan.Id,
 								YearlyCoverage = plan.YearlyCoverage,
-								Level = plan.Level,
+								Level = plan.Level.ToString(),
 								Category = plan.Category.Name,
 								Quotation = plan.Quotation,
 								Company = plan.Company.Name,
@@ -71,7 +71,7 @@ namespace InsurTech.APIs.Controllers
                             var homeInsuranceDto = new HomeInsuranceDTO
                             {	Id = plan.Id,
 								YearlyCoverage = plan.YearlyCoverage,
-								Level = plan.Level,
+								Level = plan.Level.ToString(),
 								Category = plan.Category.Name,
 								Quotation = plan.Quotation,
 								Company = plan.Company.Name,
@@ -92,7 +92,7 @@ namespace InsurTech.APIs.Controllers
                             {
 								Id = plan.Id,
 								YearlyCoverage = plan.YearlyCoverage,
-								Level = plan.Level,
+								Level = plan.Level.ToString(),
 								Category = plan.Category.Name,
 								Quotation = plan.Quotation,
 								Company = plan.Company.Name,

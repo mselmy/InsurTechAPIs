@@ -75,6 +75,7 @@ namespace InsurTech.APIs.Controllers
 		public async Task<ActionResult> GetUserByEmail([FromRoute] string email)
 		{
 			var user = await _userManager.FindByEmailAsync(email);
+			if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
 			if (user is null) return NotFound("User not found");
             var userDto= _mapper.Map<GetUserDTO>(user);
             return Ok(userDto);
@@ -87,7 +88,8 @@ namespace InsurTech.APIs.Controllers
 		{
 			var user = await _userManager.FindByNameAsync(userName);
 			if (user is null) return NotFound("User not found");
-            var userDto= _mapper.Map<GetUserDTO>(user);
+			if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
+			var userDto = _mapper.Map<GetUserDTO>(user);
 			return Ok(userDto);
 		}
 		#endregion
@@ -98,17 +100,20 @@ namespace InsurTech.APIs.Controllers
         {
 			var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserType == UserType.Customer && x is Customer && (x as Customer).NationalID == nationalId);
 			if (user is null) return NotFound("User not found");
+			if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
 			var userDto = _mapper.Map<GetUserDTO>(user);
 			return Ok(userDto);
 		}
 		#endregion
+
 		#region GetCompanyByTaxNumber
 		[HttpGet("GetCompanyByTaxNumber/{taxNumber}")]
         public async Task<ActionResult> GetCompanyByTaxNumber([FromRoute] string taxNumber)
         {
             var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserType == UserType.Company && x is Company && (x as Company).TaxNumber == taxNumber);
             if (user is null) return NotFound("User not found");
-            var userDto = _mapper.Map<GetUserDTO>(user);
+			if (user.IsDeleted == true) return BadRequest(new ApiResponse(400, "User is deleted"));
+			var userDto = _mapper.Map<GetUserDTO>(user);
             return Ok(userDto);
         }
         #endregion
@@ -118,11 +123,61 @@ namespace InsurTech.APIs.Controllers
         public async Task<ActionResult> GetAllUsers()
         {
 			var users = await _userManager.Users.ToListAsync();
+            users= users.Where(x => x.IsDeleted == false).ToList();
 			if (users is null) return NotFound("Users not found");
-			var userDto = _mapper.Map<List<GetUserDTO>>(users);
-			return Ok(userDto);
+            List<GetUserDTO> usersDto = [];
+            foreach(var user in users)
+            {
+				if (user.UserType == UserType.Customer)
+                {
+                    var customer = new GetUserDTO
+                    {
+                        Id= user.Id,
+                        UserType= user.UserType,
+                        Name= user.Name,
+                        Email= user.Email,
+                        UserName= user.UserName,
+                        NationalId= (user as Customer).NationalID,
+                        BirthDate= (user as Customer).BirthDate.ToString(),
+                        PhoneNumber= user.PhoneNumber
+                    };
+                    usersDto.Add(customer);
+				}
+				else if(user.UserType == UserType.Company)
+                {
+                    var company = new GetUserDTO
+                    {
+						Id = user.Id,
+                        UserType = user.UserType,
+						Name = user.Name,
+						Email = user.Email,
+						UserName = user.UserName,
+						TaxNumber = (user as Company).TaxNumber,
+						Location = (user as Company).Location,
+						PhoneNumber = user.PhoneNumber
+					};
+					usersDto.Add(company);
+                }
+			} 
+			return Ok(usersDto);
 		}
         #endregion
+
+        #region DeleteUser
+        [HttpDelete("DeleteUser/{id}")]
+        public async Task<ActionResult> DeleteUser([FromRoute] string id)
+        {
+			var user = await _userManager.FindByIdAsync(id);
+			if (user is null) return NotFound("User not found");
+			user.IsDeleted = true;
+			await _userManager.UpdateAsync(user);
+			return Ok();
+		}
+        #endregion
+
+
+
+
 
 		#region RegisterCompany
 

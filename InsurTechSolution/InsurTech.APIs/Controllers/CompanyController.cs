@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using InsurTech.APIs.DTOs.Company;
 using InsurTech.APIs.DTOs.CompanyRequests;
+using InsurTech.APIs.DTOs.CompanyUpdateDto;
 using InsurTech.APIs.DTOs.RequestDTO;
 using InsurTech.APIs.Errors;
 using InsurTech.Core;
@@ -78,7 +79,9 @@ namespace InsurTech.APIs.Controllers
 
             if (user is null) return NotFound(new ApiResponse(404, "User not found"));
 
-            if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
+			if (user.IsDeleted == true) return NotFound(new ApiResponse(404, "User is deleted"));
+
+			if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
 
             var company = _mapper.Map<CompanyByIdOutputDto>(user);
             if (company == null) return NotFound(new ApiResponse(404, "Company not found"));
@@ -113,6 +116,7 @@ namespace InsurTech.APIs.Controllers
         public async Task<IActionResult> GetAllCompaniesByStatus([FromRoute] string status)
         {
             var users = await _userManager.GetUsersInRoleAsync("Company");
+            users=users.Where(c => c.IsDeleted==false).ToList();
             var companies = _mapper.Map<List<CompanyByIdOutputDto>>(users);
 
             if (!Enum.TryParse<IsApprove>(status.ToString(), true, out var isApprove))
@@ -120,7 +124,7 @@ namespace InsurTech.APIs.Controllers
                 return BadRequest(new ApiResponse(400, $"Invalid status, status must be one of {string.Join(", ", Enum.GetNames(typeof(IsApprove)))}"));
             }
 
-            companies = companies.Where(c => c.IsApprove == isApprove).ToList();
+            companies = companies.Where(c => c.IsApprove == isApprove ).ToList();
 
             return Ok(companies);
         }
@@ -135,6 +139,29 @@ namespace InsurTech.APIs.Controllers
 			if (user.UserType != UserType.Company) return BadRequest(new ApiResponse(400, "User is not a company"));
 			user.IsDeleted = true;
 			await _userManager.UpdateAsync(user);
+			return Ok();
+		}
+        #endregion
+
+        #region Update Company
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCompany([FromRoute] string id, [FromBody] CompanyUpdateDto company)
+        {
+			if (id != company.Id)
+            {
+				return BadRequest("ID in the route does not match the ID in the request body");
+			}
+
+			var existingCompany = await _userManager.FindByIdAsync(id);
+			if (existingCompany == null)
+            {
+				return NotFound("Company not found");
+			}
+
+			_mapper.Map(company, existingCompany);
+
+			await _userManager.UpdateAsync(existingCompany);
+
 			return Ok();
 		}
         #endregion
