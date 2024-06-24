@@ -125,7 +125,41 @@ namespace InsurTech.APIs.Controllers
 			var users = await _userManager.Users.ToListAsync();
             users= users.Where(x => x.IsDeleted == false).ToList();
 			if (users is null) return NotFound("Users not found");
-			return Ok(users);
+            List<GetUserDTO> usersDto = [];
+            foreach(var user in users)
+            {
+				if (user.UserType == UserType.Customer)
+                {
+                    var customer = new GetUserDTO
+                    {
+                        Id= user.Id,
+                        UserType= user.UserType,
+                        Name= user.Name,
+                        Email= user.Email,
+                        UserName= user.UserName,
+                        NationalId= (user as Customer).NationalID,
+                        BirthDate= (user as Customer).BirthDate.ToString(),
+                        PhoneNumber= user.PhoneNumber
+                    };
+                    usersDto.Add(customer);
+				}
+				else if(user.UserType == UserType.Company)
+                {
+                    var company = new GetUserDTO
+                    {
+						Id = user.Id,
+                        UserType = user.UserType,
+						Name = user.Name,
+						Email = user.Email,
+						UserName = user.UserName,
+						TaxNumber = (user as Company).TaxNumber,
+						Location = (user as Company).Location,
+						PhoneNumber = user.PhoneNumber
+					};
+					usersDto.Add(company);
+                }
+			} 
+			return Ok(usersDto);
 		}
         #endregion
 

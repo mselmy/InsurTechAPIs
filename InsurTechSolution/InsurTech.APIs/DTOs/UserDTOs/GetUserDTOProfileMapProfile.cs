@@ -8,7 +8,6 @@ namespace InsurTech.APIs.DTOs.UserDTOs
 		public GetUserDTOProfileMapProfile()
 		{
 			CreateMap<AppUser, GetUserDTO>().ReverseMap();
-
 		}
 	}
 }
